@@ -24,99 +24,98 @@ const infoBox = document.getElementById('infoBox');
 let hoveredComponent = null;
 let selectedComponent = null;
 
-// Canvas más grande para mejor espaciado
-canvas.width = 1600;
-canvas.height = 900;
+canvas.width = 1400;
+canvas.height = 800;
 
+// Componentes con el nuevo diseño
 const components = {
-    // Columna 1: PC y control de flujo (alineados verticalmente)
-    pc: { x: 50, y: 100, width: 70, height: 70, label: 'PC', color: '#FFE5B4', type: 'rect' },
-    adderPC4: { x: 50, y: 210, width: 70, height: 50, label: '+4', color: '#FFD9B3', type: 'rect' },
-    muxPC: { x: 50, y: 320, width: 50, height: 90, label: 'MUX', color: '#E0E0E0', type: 'mux' },
-    adderBranch: { x: 40, y: 500, width: 90, height: 50, label: 'Branch\nAdder', color: '#FFD9B3', type: 'rect' },
+    // Fila superior izquierda
+    pc: { x: 30, y: 350, width: 60, height: 60, label: 'PC', color: '#999', type: 'rect' },
     
-    // Columna 2: Memoria de instrucciones
-    instMem: { x: 220, y: 80, width: 140, height: 200, label: 'IM', color: '#FF9800', type: 'memory' },
+    // Sumador PC+4
+    adderPC4: { x: 120, y: 460, width: 50, height: 50, label: '+', color: '#999', type: 'rect' },
     
-    // Columna 3: Generador de inmediatos (alineado)
-    immGen: { x: 220, y: 340, width: 120, height: 80, label: 'Imm Gen', color: '#FFFACD', type: 'rect' },
+    // Multiplexor PC (arriba izquierda)
+    muxPC: { x: 120, y: 540, width: 40, height: 80, label: '', color: '#CCC', type: 'mux', 
+             inputs: ['0', '1'], hasSelector: true },
     
-    // Columna 4: Banco de registros (centrado mejor)
-    regFile: { x: 450, y: 120, width: 160, height: 200, label: 'RF', color: '#FFB6C1', type: 'regfile' },
+    // Memoria de Programa (grande, arriba centro)
+    instMem: { x: 220, y: 50, width: 200, height: 280, label: 'MEMORIA DE\nPROGRAMA', 
+               color: '#999', type: 'memory' },
     
-    // Columna 5: MUX antes de ALU (centrado con ALU)
-    muxALU: { x: 700, y: 200, width: 50, height: 100, label: 'MUX', color: '#E0E0E0', type: 'mux' },
+    // Multiplexores superiores (pequeños)
+    muxTop1: { x: 450, y: 80, width: 35, height: 60, label: '', color: '#CCC', type: 'mux',
+               inputs: ['0', '1'], hasSelector: false },
+    muxTop2: { x: 450, y: 160, width: 35, height: 60, label: '', color: '#CCC', type: 'mux',
+               inputs: ['0', '1'], hasSelector: false },
     
-    // Columna 6: ALU (más centrada)
-    alu: { x: 850, y: 180, width: 120, height: 140, label: 'ALU', color: '#90EE90', type: 'alu' },
+    // Sign Extend (arriba centro-derecha)
+    signExtend: { x: 560, y: 220, width: 110, height: 50, label: 'SIGN EXTEND', 
+                  color: '#999', type: 'rect' },
     
-    // Columna 7: Memoria de datos (alineada con ALU)
-    dataMem: { x: 1080, y: 120, width: 140, height: 200, label: 'DM', color: '#FFDAB9', type: 'memory' },
+    // Banco de Registros (centro)
+    regFile: { x: 490, y: 310, width: 180, height: 180, label: 'BANCO DE\nREGISTROS', 
+               color: '#999', type: 'regfile' },
     
-    // Columna 8: MUX final (centrado con DM)
-    muxWB: { x: 1320, y: 200, width: 50, height: 100, label: 'MUX', color: '#E0E0E0', type: 'mux' },
+    // Multiplexor central (derecha del banco de registros)
+    muxALU: { x: 700, y: 360, width: 35, height: 60, label: '', color: '#CCC', type: 'mux',
+              inputs: ['0', '1'], hasSelector: false },
     
-    // Fila inferior: Control (más centrado)
-    controlUnit: { x: 500, y: 600, width: 300, height: 130, label: 'Control Unit', color: '#FFD700', type: 'control' },
-    aluControl: { x: 880, y: 600, width: 100, height: 50, label: 'ALU Ctrl', color: '#D0F0D0', type: 'rect' }
+    // ALU (centro-derecha)
+    alu: { x: 790, y: 330, width: 80, height: 120, label: 'ALU', color: '#999', type: 'alu' },
+    
+    // Memoria de Datos (derecha)
+    dataMem: { x: 920, y: 240, width: 200, height: 280, label: 'MEMORIA DE\nDATOS', 
+               color: '#999', type: 'memory' },
+    
+    // Multiplexor final (derecha)
+    muxWB: { x: 1140, y: 360, width: 35, height: 60, label: '', color: '#CCC', type: 'mux',
+             inputs: ['0', '1'], hasSelector: false },
+    
+    // Unidad de Control (abajo centro)
+    controlUnit: { x: 720, y: 630, width: 220, height: 120, label: 'CU', 
+                   color: '#999', type: 'control' },
+    
+    // Componentes de lógica (abajo izquierda)
+    andGate: { x: 280, y: 680, width: 50, height: 40, label: 'AND', color: '#999', type: 'rect' },
+    notGate: { x: 400, y: 700, width: 50, height: 40, label: 'NOT', color: '#999', type: 'rect' },
+    
+    // Multiplexor de branch (abajo izquierda)
+    muxBranch: { x: 360, y: 660, width: 35, height: 60, label: '', color: '#CCC', type: 'mux',
+                 inputs: ['0', '1'], hasSelector: false },
+    
+    // Orden y Sign Extend (abajo izquierda)
+    ordenSignExtend: { x: 200, y: 470, width: 120, height: 50, label: 'ORDEN & SIGN\nEXTEND', 
+                       color: '#999', type: 'rect' }
 };
 
 const componentInfo = {
-    pc: 'Program Counter\n\nMantiene la dirección de la siguiente instrucción.',
-    adderPC4: 'Sumador PC+4\n\nCalcula la siguiente dirección secuencial.',
-    muxPC: 'Multiplexor PC\n\nSelecciona entre PC+4 o dirección de branch.',
-    adderBranch: 'Sumador Branch\n\nCalcula dirección de salto: PC + offset.',
-    instMem: 'Memoria de Instrucciones\n\nAlmacena el programa. Solo lectura.',
-    immGen: 'Generador de Inmediatos\n\nExtrae y extiende inmediatos de la instrucción.',
-    regFile: 'Banco de Registros\n\n32 registros (x0-x31). x0 siempre es 0.',
-    muxALU: 'Multiplexor ALU\n\nSelecciona: registro o inmediato.',
-    alu: 'ALU\n\nRealiza operaciones aritméticas y lógicas.',
-    dataMem: 'Memoria de Datos\n\nPara loads y stores.',
-    muxWB: 'Multiplexor Write-Back\n\nSelecciona: ALU o memoria.',
-    controlUnit: 'Unidad de Control\n\nGenera todas las señales de control.',
-    aluControl: 'Control ALU\n\nDetermina la operación de la ALU.'
+    pc: 'Program Counter\n\nContador que mantiene la dirección de la siguiente instrucción a ejecutar.',
+    adderPC4: 'Sumador PC+4\n\nIncrementa el PC en 4 para obtener la dirección de la siguiente instrucción secuencial.',
+    muxPC: 'Multiplexor PC\n\nSelecciona entre PC+4 (secuencial) o dirección de salto (branch/jump).',
+    instMem: 'Memoria de Programa\n\nAlmacena las instrucciones del programa. Es de solo lectura.',
+    muxTop1: 'Multiplexor\n\nSelecciona la fuente de datos según señal de control.',
+    muxTop2: 'Multiplexor\n\nSelecciona la fuente de datos según señal de control.',
+    signExtend: 'Sign Extend\n\nExtiende el inmediato con signo de 12 bits a 32 bits.',
+    regFile: 'Banco de Registros\n\n32 registros de propósito general (x0-x31). x0 siempre vale 0.',
+    muxALU: 'Multiplexor ALU\n\nSelecciona entre segundo registro o inmediato como operando B de la ALU.',
+    alu: 'ALU\n\nUnidad Aritmético-Lógica. Realiza operaciones como suma, resta, AND, OR, etc.',
+    dataMem: 'Memoria de Datos\n\nMemoria RAM para instrucciones load/store.',
+    muxWB: 'Multiplexor Write-Back\n\nSelecciona entre resultado de ALU o dato de memoria para escribir en registro.',
+    controlUnit: 'Unidad de Control (CU)\n\nGenera todas las señales de control según el opcode de la instrucción.',
+    andGate: 'Puerta AND\n\nCombina señales de branch y resultado de comparación.',
+    notGate: 'Puerta NOT\n\nInvierte señal lógica.',
+    muxBranch: 'Multiplexor Branch\n\nSelecciona señal para control de salto.',
+    ordenSignExtend: 'Orden & Sign Extend\n\nReordena bits y extiende inmediatos para branches.'
 };
 
 // ============================================
 // FUNCIONES DE DIBUJO BÁSICAS
 // ============================================
 
-function drawArrow(x1, y1, x2, y2, color, width) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.stroke();
-    
-    // Punta de flecha
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    const arrowLen = 8;
-    const arrowWidth = 5;
-    
-    ctx.beginPath();
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(
-        x2 - arrowLen * Math.cos(angle) - arrowWidth * Math.sin(angle),
-        y2 - arrowLen * Math.sin(angle) + arrowWidth * Math.cos(angle)
-    );
-    ctx.lineTo(
-        x2 - arrowLen * Math.cos(angle) + arrowWidth * Math.sin(angle),
-        y2 - arrowLen * Math.sin(angle) - arrowWidth * Math.cos(angle)
-    );
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-}
-
-function drawBus(x1, y1, x2, y2, color, width = 3) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-}
+// ============================================
+// FUNCIONES DE DIBUJO MEJORADAS
+// ============================================
 
 function drawRoundRect(x, y, w, h, r, fill, stroke, lineW = 2) {
     ctx.beginPath();
@@ -137,17 +136,25 @@ function drawRoundRect(x, y, w, h, r, fill, stroke, lineW = 2) {
     ctx.stroke();
 }
 
-// ============================================
-// DIBUJO DE COMPONENTES
-// ============================================
-
-function drawRect(comp, isHovered, isSelected) {
-    const stroke = isSelected ? '#FF0000' : isHovered ? '#FF6600' : '#333';
-    const lineW = isSelected ? 3 : 2;
-    const fill = isSelected ? '#FFD700' : isHovered ? '#FFA500' : comp.color;
+function drawRect(comp, isHovered, isSelected, isActive) {
+    const stroke = isSelected ? '#FF0000' : isActive ? '#00FF00' : isHovered ? '#FF6600' : '#333';
+    const lineW = isActive ? 4 : isSelected ? 3 : 2;
+    let fill = comp.color;
     
-    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 6, fill, stroke, lineW);
+    if (isActive) {
+        fill = '#FFFFE0';
+        ctx.shadowColor = '#00FF00';
+        ctx.shadowBlur = 15;
+    } else if (isHovered) {
+        fill = '#BBB';
+    } else if (isSelected) {
+        fill = '#FFD700';
+    }
     
+    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 4, fill, stroke, lineW);
+    ctx.shadowBlur = 0;
+    
+    // Texto
     ctx.fillStyle = '#000';
     ctx.font = 'bold 12px Arial';
     ctx.textAlign = 'center';
@@ -162,436 +169,441 @@ function drawRect(comp, isHovered, isSelected) {
     });
 }
 
-function drawMemory(comp, isHovered, isSelected) {
-    const stroke = isSelected ? '#FF0000' : isHovered ? '#FF6600' : '#333';
-    const lineW = isSelected ? 3 : 2;
-    const fill = isSelected ? '#FFD700' : isHovered ? '#FFA500' : comp.color;
+function drawMemory(comp, isHovered, isSelected, isActive) {
+    const stroke = isSelected ? '#FF0000' : isActive ? '#00FF00' : isHovered ? '#FF6600' : '#333';
+    const lineW = isActive ? 4 : isSelected ? 3 : 2;
+    let fill = comp.color;
     
-    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 6, fill, stroke, lineW);
+    if (isActive) {
+        fill = '#FFFFE0';
+        ctx.shadowColor = '#00FF00';
+        ctx.shadowBlur = 15;
+    } else if (isHovered) {
+        fill = '#BBB';
+    }
     
-    // Título
+    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 4, fill, stroke, lineW);
+    ctx.shadowBlur = 0;
+    
+    // Título centrado
     ctx.fillStyle = '#000';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(comp.label, comp.x + comp.width/2, comp.y + 25);
     
-    // Líneas de memoria simplificadas
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 4; i++) {
-        const y = comp.y + 50 + i * 30;
+    const lines = comp.label.split('\n');
+    const startY = comp.y + 40;
+    lines.forEach((line, i) => {
+        ctx.fillText(line, comp.x + comp.width/2, startY + i * 18);
+    });
+}
+
+function drawMux(comp, isHovered, isSelected, isActive) {
+    const stroke = isSelected ? '#FF0000' : isActive ? '#00FF00' : isHovered ? '#FF6600' : '#333';
+    const lineW = isActive ? 4 : isSelected ? 3 : 2;
+    let fill = comp.color;
+    
+    if (isActive) {
+        fill = '#EEEEEE';
+        ctx.shadowColor = '#00FF00';
+        ctx.shadowBlur = 15;
+    } else if (isHovered) {
+        fill = '#DDD';
+    }
+    
+    // Trapecio (MUX)
+    ctx.beginPath();
+    ctx.moveTo(comp.x, comp.y);
+    ctx.lineTo(comp.x + comp.width, comp.y + 10);
+    ctx.lineTo(comp.x + comp.width, comp.y + comp.height - 10);
+    ctx.lineTo(comp.x, comp.y + comp.height);
+    ctx.closePath();
+    
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = lineW;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    // Etiquetas 0 y 1 a la izquierda
+    if (comp.inputs) {
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(comp.inputs[0], comp.x - 3, comp.y + comp.height * 0.3);
+        ctx.fillText(comp.inputs[1], comp.x - 3, comp.y + comp.height * 0.7);
+    }
+    
+    // Pequeño triángulo selector en la parte inferior si tiene
+    if (comp.hasSelector) {
+        const triX = comp.x + comp.width/2;
+        const triY = comp.y + comp.height + 3;
         ctx.beginPath();
-        ctx.moveTo(comp.x + 15, y);
-        ctx.lineTo(comp.x + comp.width - 15, y);
-        ctx.stroke();
+        ctx.moveTo(triX, triY);
+        ctx.lineTo(triX - 4, triY + 6);
+        ctx.lineTo(triX + 4, triY + 6);
+        ctx.closePath();
+        ctx.fillStyle = '#666';
+        ctx.fill();
     }
 }
 
-function drawRegFile(comp, isHovered, isSelected) {
-    const stroke = isSelected ? '#FF0000' : isHovered ? '#FF6600' : '#333';
-    const lineW = isSelected ? 3 : 2;
-    const fill = isSelected ? '#FFD700' : isHovered ? '#FFA500' : comp.color;
+function drawALU(comp, isHovered, isSelected, isActive) {
+    const stroke = isSelected ? '#FF0000' : isActive ? '#00FF00' : isHovered ? '#FF6600' : '#333';
+    const lineW = isActive ? 4 : isSelected ? 3 : 2;
+    let fill = comp.color;
     
-    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 6, fill, stroke, lineW);
-    
-    // Título
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(comp.label, comp.x + comp.width/2, comp.y + 25);
-    
-    // Puertos
-    ctx.font = '10px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('a1', comp.x + 10, comp.y + 60);
-    ctx.fillText('a2', comp.x + 10, comp.y + 90);
-    ctx.fillText('ad', comp.x + 10, comp.y + 120);
-    ctx.fillText('wd', comp.x + 10, comp.y + 150);
-    ctx.fillText('we', comp.x + 10, comp.y + 180);
-    
-    ctx.textAlign = 'right';
-    ctx.fillText('d1', comp.x + comp.width - 10, comp.y + 60);
-    ctx.fillText('d2', comp.x + comp.width - 10, comp.y + 90);
-    
-    // Mini representación de registros
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 1;
-    const regW = 25;
-    const regH = 12;
-    const startX = comp.x + comp.width/2 - 38;
-    const startY = comp.y + 50;
-    
-    for (let i = 0; i < 6; i++) {
-        const rx = startX + (i % 3) * 26;
-        const ry = startY + Math.floor(i / 3) * 16;
-        ctx.strokeRect(rx, ry, regW, regH);
+    if (isActive) {
+        fill = '#FFFFE0';
+        ctx.shadowColor = '#00FF00';
+        ctx.shadowBlur = 15;
+    } else if (isHovered) {
+        fill = '#BBB';
     }
     
-    ctx.font = '8px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('x0', startX + 12, startY + 9);
-    ctx.fillText('x1', startX + 38, startY + 9);
-    ctx.fillText('...', startX + 64, startY + 9);
-}
-
-function drawALU(comp, isHovered, isSelected) {
-    const stroke = isSelected ? '#FF0000' : isHovered ? '#FF6600' : '#333';
-    const lineW = isSelected ? 3 : 2;
-    const fill = isSelected ? '#FFD700' : isHovered ? '#FFA500' : comp.color;
-    
-    // Trapecio
+    // Trapecio de ALU
     ctx.beginPath();
     ctx.moveTo(comp.x, comp.y + 20);
     ctx.lineTo(comp.x + comp.width, comp.y);
     ctx.lineTo(comp.x + comp.width, comp.y + comp.height);
     ctx.lineTo(comp.x, comp.y + comp.height - 20);
     ctx.closePath();
+    
     ctx.fillStyle = fill;
     ctx.fill();
     ctx.strokeStyle = stroke;
     ctx.lineWidth = lineW;
     ctx.stroke();
+    ctx.shadowBlur = 0;
     
-    // Label
+    // Etiqueta ALU
     ctx.fillStyle = '#000';
-    ctx.font = 'bold 20px Arial';
+    ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('ALU', comp.x + comp.width/2, comp.y + comp.height/2);
 }
 
-function drawMux(comp, isHovered, isSelected) {
-    const stroke = isSelected ? '#FF0000' : isHovered ? '#FF6600' : '#333';
-    const lineW = isSelected ? 3 : 2;
-    const fill = isSelected ? '#FFD700' : isHovered ? '#FFA500' : comp.color;
+function drawRegFile(comp, isHovered, isSelected, isActive) {
+    const stroke = isSelected ? '#FF0000' : isActive ? '#00FF00' : isHovered ? '#FF6600' : '#333';
+    const lineW = isActive ? 4 : isSelected ? 3 : 2;
+    let fill = comp.color;
     
-    // Trapecio
-    ctx.beginPath();
-    ctx.moveTo(comp.x, comp.y);
-    ctx.lineTo(comp.x + comp.width, comp.y + 15);
-    ctx.lineTo(comp.x + comp.width, comp.y + comp.height - 15);
-    ctx.lineTo(comp.x, comp.y + comp.height);
-    ctx.closePath();
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = lineW;
-    ctx.stroke();
+    if (isActive) {
+        fill = '#FFFFE0';
+        ctx.shadowColor = '#00FF00';
+        ctx.shadowBlur = 15;
+    } else if (isHovered) {
+        fill = '#BBB';
+    }
     
-    // Label
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 11px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('MUX', comp.x + comp.width/2, comp.y + comp.height/2);
-    
-    // Selectores
-    ctx.font = '9px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('0', comp.x + 3, comp.y + 25);
-    ctx.fillText('1', comp.x + 3, comp.y + comp.height - 25);
-}
-
-function drawControl(comp, isHovered, isSelected) {
-    const stroke = isSelected ? '#FF0000' : isHovered ? '#FF6600' : '#333';
-    const lineW = isSelected ? 3 : 2;
-    const fill = isSelected ? '#FFD700' : isHovered ? '#FFA500' : comp.color;
-    
-    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 8, fill, stroke, lineW);
+    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 4, fill, stroke, lineW);
+    ctx.shadowBlur = 0;
     
     // Título
     ctx.fillStyle = '#000';
-    ctx.font = 'bold 14px Arial';
+    ctx.font = 'bold 13px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(comp.label, comp.x + comp.width/2, comp.y + 20);
-    
-    // Señales (simplificado)
-    const signals = ['RegWrite', 'ALUSrc', 'MemWrite', 'MemRead', 'MemToReg', 'Branch'];
-    ctx.font = '9px Arial';
-    
-    signals.forEach((sig, i) => {
-        const col = i % 3;
-        const row = Math.floor(i / 3);
-        const x = comp.x + 20 + col * 80;
-        const y = comp.y + 45 + row * 25;
-        
-        ctx.fillStyle = '#DDD';
-        ctx.fillRect(x, y, 65, 16);
-        ctx.strokeStyle = '#999';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x, y, 65, 16);
-        
-        ctx.fillStyle = '#333';
-        ctx.textAlign = 'center';
-        ctx.fillText(sig, x + 32, y + 11);
+    const lines = comp.label.split('\n');
+    const startY = comp.y + 30;
+    lines.forEach((line, i) => {
+        ctx.fillText(line, comp.x + comp.width/2, startY + i * 16);
     });
+    
+    // Representación visual de registros (matriz de cuadritos)
+    const regStartY = comp.y + 80;
+    const regSize = 12;
+    const gap = 4;
+    const cols = 8;
+    const rows = 4;
+    
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 1;
+    
+    for (let i = 0; i < rows * cols; i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const x = comp.x + 15 + col * (regSize + gap);
+        const y = regStartY + row * (regSize + gap);
+        ctx.strokeRect(x, y, regSize, regSize);
+    }
+}
+
+function drawControl(comp, isHovered, isSelected, isActive) {
+    const stroke = isSelected ? '#FF0000' : isActive ? '#00FF00' : isHovered ? '#FF6600' : '#333';
+    const lineW = isActive ? 4 : isSelected ? 3 : 2;
+    let fill = comp.color;
+    
+    if (isActive) {
+        fill = '#FFFFE0';
+        ctx.shadowColor = '#00FF00';
+        ctx.shadowBlur = 15;
+    } else if (isHovered) {
+        fill = '#BBB';
+    }
+    
+    drawRoundRect(comp.x, comp.y, comp.width, comp.height, 6, fill, stroke, lineW);
+    ctx.shadowBlur = 0;
+    
+    // Etiqueta
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(comp.label, comp.x + comp.width/2, comp.y + comp.height/2);
 }
 
 // ============================================
-// CONEXIONES DEL DATAPATH (CORREGIDAS Y ALINEADAS)
+// DIBUJAR CONEXIONES CORREGIDAS
 // ============================================
 
 function drawConnections() {
     ctx.lineWidth = 2;
-    
-    // ===== PC -> Instruction Memory =====
-    drawBus(120, 135, 220, 135, '#4A90E2', 3);
-    
-    // ===== PC -> +4 =====
-    drawArrow(85, 170, 85, 210, '#666', 2);
-    
-    // ===== +4 -> MUX PC =====
-    drawArrow(85, 260, 85, 320, '#666', 2);
-    
-    // ===== MUX PC -> PC (feedback loop) =====
     ctx.strokeStyle = '#666';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(75, 320);
-    ctx.lineTo(75, 290);
-    ctx.lineTo(30, 290);
-    ctx.lineTo(30, 135);
-    ctx.lineTo(50, 135);
-    ctx.stroke();
-    drawArrow(48, 135, 50, 135, '#666', 2);
     
-    // ===== Instruction Memory -> Control Unit (opcode) =====
-    ctx.strokeStyle = '#00BFFF';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(290, 280);
-    ctx.lineTo(290, 500);
-    ctx.lineTo(550, 500);
-    ctx.lineTo(550, 600);
-    ctx.stroke();
-    drawArrow(550, 598, 550, 600, '#00BFFF', 2);
+    // ===== 1. PC -> Memoria de Instrucciones (CORREGIDO) =====
+    // El PC va horizontalmente directo a la entrada de la memoria
+    drawLine(90, 380, 220, 380);
+    // Flecha apuntando a la entrada izquierda de la memoria
+    drawLine(220, 380, 220, 190);
+    drawArrow(220, 192, 220, 190, '#666');
     
-    // ===== Instruction Memory -> Register File (rs1, rs2, rd) =====
-    // rs1 (a1)
-    drawBus(360, 150, 400, 150, '#32CD32', 2);
-    drawBus(400, 150, 400, 180, '#32CD32', 2);
-    drawBus(400, 180, 450, 180, '#32CD32', 2);
+    // ===== 2. PC -> Sumador PC+4 =====
+    // El PC también baja hacia el sumador
+    drawLine(60, 410, 60, 460);
+    drawArrow(60, 458, 60, 460, '#666');
+    drawLine(60, 460, 145, 460);
+    drawLine(145, 460, 145, 460);
     
-    // rs2 (a2)
-    drawBus(360, 170, 420, 170, '#32CD32', 2);
-    drawBus(420, 170, 420, 210, '#32CD32', 2);
-    drawBus(420, 210, 450, 210, '#32CD32', 2);
+    // ===== 3. Sumador PC+4 -> MUX PC (entrada 0 - arriba) =====
+    drawLine(145, 510, 145, 555);
     
-    // rd (ad) - va por arriba para write back
-    ctx.strokeStyle = '#9370DB';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(360, 190);
-    ctx.lineTo(430, 190);
-    ctx.lineTo(430, 80);
-    ctx.lineTo(490, 80);
-    ctx.lineTo(490, 120);
-    ctx.stroke();
-    drawArrow(490, 118, 490, 120, '#9370DB', 2);
+    // ===== 4. MUX PC -> PC (retroalimentación) =====
+    // Sale del MUX por abajo, va a la izquierda y sube al PC
+    drawLine(130, 620, 130, 650);
+    drawLine(130, 650, 10, 650);
+    drawLine(10, 650, 10, 380);
+    drawLine(10, 380, 30, 380);
+    drawArrow(28, 380, 30, 380, '#666');
     
-    // ===== Instruction Memory -> Imm Gen =====
-    ctx.strokeStyle = '#FF8C00';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(290, 280);
-    ctx.lineTo(290, 310);
-    ctx.lineTo(280, 310);
-    ctx.lineTo(280, 340);
-    ctx.stroke();
-    drawArrow(280, 338, 280, 340, '#FF8C00', 2);
+    // ===== 5. Memoria de Instrucciones -> Salidas =====
+    // La instrucción sale por abajo de la memoria
+    const instMemOutX = 320;
+    const instMemCenterX = 320;
+    const instMemBottomY = 330;
     
-    // ===== Register File d1 -> ALU (entrada superior) =====
-    ctx.strokeStyle = '#32CD32';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(610, 180);
-    ctx.lineTo(680, 180);
-    ctx.lineTo(680, 220);
-    ctx.lineTo(850, 220);
-    ctx.stroke();
-    drawArrow(848, 220, 850, 220, '#32CD32', 3);
+    // Línea principal de salida de la instrucción
+    drawLine(instMemCenterX, instMemBottomY, instMemCenterX, 360);
     
-    // ===== Register File d2 -> MUX ALU =====
-    ctx.strokeStyle = '#32CD32';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(610, 210);
-    ctx.lineTo(660, 210);
-    ctx.lineTo(660, 270);
-    ctx.lineTo(700, 270);
-    ctx.stroke();
-    drawArrow(698, 270, 700, 270, '#32CD32', 3);
+    // rs1 -> MUX superior 1
+    drawLine(instMemCenterX, 360, 440, 360);
+    drawLine(440, 360, 440, 110);
+    drawLine(440, 110, 450, 110);
     
-    // ===== Imm Gen -> MUX ALU =====
-    ctx.strokeStyle = '#FF8C00';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(340, 380);
-    ctx.lineTo(680, 380);
-    ctx.lineTo(680, 280);
-    ctx.lineTo(700, 280);
-    ctx.stroke();
-    drawArrow(698, 280, 700, 280, '#FF8C00', 2);
+    // rs2 -> MUX superior 2  
+    drawLine(instMemCenterX, 360, 430, 360);
+    drawLine(430, 360, 430, 190);
+    drawLine(430, 190, 450, 190);
     
-    // ===== MUX ALU -> ALU (entrada inferior) =====
-    drawBus(750, 250, 850, 260, '#32CD32', 3);
+    // rd -> va arriba para write-back
+    drawLine(instMemCenterX, 360, 420, 360);
+    drawLine(420, 360, 420, 30);
+    drawLine(420, 30, 1210, 30);
+    drawLine(1210, 30, 1210, 390);
     
-    // ===== ALU -> Data Memory (address) =====
-    ctx.strokeStyle = '#DC143C';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(970, 250);
-    ctx.lineTo(1050, 250);
-    ctx.lineTo(1050, 190);
-    ctx.lineTo(1080, 190);
-    ctx.stroke();
-    drawArrow(1078, 190, 1080, 190, '#DC143C', 3);
+    // Inmediato -> Sign Extend (arriba)
+    drawLine(360, instMemBottomY, 360, 245);
+    drawLine(360, 245, 560, 245);
+    drawArrow(558, 245, 560, 245, '#666');
     
-    // ===== Register d2 -> Data Memory (write data) =====
-    ctx.strokeStyle = '#32CD32';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(610, 210);
-    ctx.lineTo(640, 210);
-    ctx.lineTo(640, 450);
-    ctx.lineTo(1050, 450);
-    ctx.lineTo(1050, 220);
-    ctx.lineTo(1080, 220);
-    ctx.stroke();
-    drawArrow(1078, 220, 1080, 220, '#32CD32', 2);
+    // Instrucción -> Orden & Sign Extend (abajo para branches)
+    drawLine(280, instMemBottomY, 280, 495);
+    drawLine(280, 495, 320, 495);
+    drawArrow(318, 495, 320, 495, '#666');
     
-    // ===== ALU -> MUX WB (opción 0) =====
-    ctx.strokeStyle = '#DC143C';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(970, 250);
-    ctx.lineTo(1300, 250);
-    ctx.lineTo(1300, 230);
-    ctx.lineTo(1320, 230);
-    ctx.stroke();
-    drawArrow(1318, 230, 1320, 230, '#DC143C', 2);
+    // Opcode -> Unidad de Control
+    drawLine(instMemCenterX, instMemBottomY, instMemCenterX, 600);
+    drawLine(instMemCenterX, 600, 720, 600);
+    drawLine(720, 600, 720, 630);
+    drawArrow(720, 628, 720, 630, '#666');
     
-    // ===== Data Memory -> MUX WB (opción 1) =====
-    ctx.strokeStyle = '#9370DB';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(1220, 220);
-    ctx.lineTo(1280, 220);
-    ctx.lineTo(1280, 270);
-    ctx.lineTo(1320, 270);
-    ctx.stroke();
-    drawArrow(1318, 270, 1320, 270, '#9370DB', 3);
+    // ===== 6. MUX superiores -> Banco de Registros =====
+    // MUX1 -> Read Register 1 (a1)
+    drawLine(485, 110, 500, 110);
+    drawLine(500, 110, 500, 335);
+    drawLine(500, 335, 490, 335);
+    drawArrow(492, 335, 490, 335, '#666');
     
-    // ===== MUX WB -> Register File (write back - wd) =====
-    ctx.strokeStyle = '#9370DB';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(1370, 250);
-    ctx.lineTo(1430, 250);
-    ctx.lineTo(1430, 60);
-    ctx.lineTo(510, 60);
-    ctx.lineTo(510, 120);
-    ctx.stroke();
-    drawArrow(510, 118, 510, 120, '#9370DB', 3);
+    // MUX2 -> Read Register 2 (a2)
+    drawLine(485, 190, 510, 190);
+    drawLine(510, 190, 510, 360);
+    drawLine(510, 360, 490, 360);
+    drawArrow(492, 360, 490, 360, '#666');
     
-    // ===== SEÑALES DE CONTROL (líneas punteadas) =====
-    ctx.setLineDash([4, 4]);
-    ctx.lineWidth = 1.5;
+    // ===== 7. Sign Extend -> MUX ALU (entrada 1 - abajo) =====
+    drawLine(670, 245, 685, 245);
+    drawLine(685, 245, 685, 405);
+    drawLine(685, 405, 700, 405);
     
-    // Control -> Register File (RegWrite + we)
-    ctx.strokeStyle = '#999';
-    ctx.beginPath();
-    ctx.moveTo(540, 600);
-    ctx.lineTo(540, 500);
-    ctx.lineTo(530, 500);
-    ctx.lineTo(530, 320);
-    ctx.stroke();
-    drawArrow(530, 322, 530, 320, '#999', 1.5);
+    // ===== 8. Banco de Registros -> Salidas =====
+    // Read Data 1 (d1) -> ALU entrada A
+    drawLine(670, 350, 750, 350);
+    drawLine(750, 350, 750, 360);
+    drawLine(750, 360, 790, 360);
+    drawArrow(788, 360, 790, 360, '#666');
     
-    // Control -> MUX ALU (ALUSrc)
-    ctx.beginPath();
-    ctx.moveTo(600, 600);
-    ctx.lineTo(600, 550);
-    ctx.lineTo(725, 550);
-    ctx.lineTo(725, 300);
-    ctx.stroke();
-    drawArrow(725, 302, 725, 300, '#999', 1.5);
+    // Read Data 2 (d2) -> Bifurcación a dos lugares
+    const rd2X = 670;
+    const rd2Y = 410;
+    drawLine(rd2X, rd2Y, 690, rd2Y);
     
-    // Control -> Data Memory (MemWrite, MemRead)
-    ctx.beginPath();
-    ctx.moveTo(660, 600);
-    ctx.lineTo(660, 550);
-    ctx.lineTo(1150, 550);
-    ctx.lineTo(1150, 320);
-    ctx.stroke();
-    drawArrow(1150, 322, 1150, 320, '#999', 1.5);
+    // Camino 1: d2 -> MUX ALU (entrada 0 - arriba)
+    drawLine(690, rd2Y, 690, 375);
+    drawLine(690, 375, 700, 375);
     
-    // Control -> MUX WB (MemToReg)
-    ctx.beginPath();
-    ctx.moveTo(720, 630);
-    ctx.lineTo(1345, 630);
-    ctx.lineTo(1345, 300);
-    ctx.stroke();
-    drawArrow(1345, 302, 1345, 300, '#999', 1.5);
+    // Camino 2: d2 -> Memoria de Datos (Write Data)
+    drawLine(690, rd2Y, 690, 540);
+    drawLine(690, 540, 905, 540);
+    drawLine(905, 540, 905, 410);
+    drawLine(905, 410, 920, 410);
+    drawArrow(918, 410, 920, 410, '#666');
     
-    // Control -> ALU Control (ALUOp)
-    ctx.beginPath();
-    ctx.moveTo(750, 650);
-    ctx.lineTo(880, 650);
-    ctx.stroke();
-    drawArrow(878, 650, 880, 650, '#999', 1.5);
+    // ===== 9. MUX ALU -> ALU entrada B =====
+    drawLine(735, 390, 755, 390);
+    drawLine(755, 390, 755, 420);
+    drawLine(755, 420, 790, 420);
+    drawArrow(788, 420, 790, 420, '#666');
     
-    // ALU Control -> ALU
-    ctx.beginPath();
-    ctx.moveTo(910, 600);
-    ctx.lineTo(910, 320);
-    ctx.stroke();
-    drawArrow(910, 322, 910, 320, '#999', 1.5);
+    // ===== 10. ALU -> Salidas =====
+    const aluOutX = 870;
+    const aluOutY = 390;
     
-    // Control -> MUX PC (Branch)
-    ctx.beginPath();
-    ctx.moveTo(500, 650);
-    ctx.lineTo(200, 650);
-    ctx.lineTo(200, 580);
-    ctx.lineTo(85, 580);
-    ctx.lineTo(85, 410);
-    ctx.stroke();
-    drawArrow(85, 412, 85, 410, '#999', 1.5);
+    // ALU Result -> bifurcación
+    drawLine(aluOutX, aluOutY, 895, aluOutY);
     
-    // ===== Branch Adder connections =====
+    // Camino 1: ALU -> Memoria de Datos (Address)
+    drawLine(895, aluOutY, 895, 350);
+    drawLine(895, 350, 920, 350);
+    drawArrow(918, 350, 920, 350, '#666');
+    
+    // Camino 2: ALU -> MUX WB (entrada 0 - arriba)
+    drawLine(895, aluOutY, 1125, aluOutY);
+    drawLine(1125, aluOutY, 1125, 375);
+    drawLine(1125, 375, 1140, 375);
+    
+    // ALU Zero flag -> AND gate (para branches)
+    drawLine(830, 450, 830, 680);
+    drawLine(830, 680, 330, 680);
+    drawLine(330, 680, 330, 700);
+    drawArrow(330, 698, 330, 700, '#666');
+    
+    // ===== 11. Memoria de Datos -> MUX WB (entrada 1 - abajo) =====
+    drawLine(1120, 380, 1130, 380);
+    drawLine(1130, 380, 1130, 405);
+    drawLine(1130, 405, 1140, 405);
+    
+    // ===== 12. MUX WB -> Banco de Registros (Write Data) =====
+    drawLine(1175, 390, 1210, 390);
+    drawLine(1210, 390, 1210, 440);
+    drawLine(1210, 440, 540, 440);
+    drawLine(540, 440, 540, 490);
+    drawArrow(540, 488, 540, 490, '#666');
+    
+    // ===== 13. Branch Address Calculation =====
+    // Orden & Sign Extend -> Sumador de Branch
+    drawLine(200, 495, 170, 495);
+    drawLine(170, 495, 170, 530);
+    
+    // PC -> Sumador de Branch (compartido con el que va a +4)
+    drawLine(60, 460, 60, 530);
+    drawLine(60, 530, 170, 530);
+    
+    // Resultado del sumador implícito -> MUX PC (entrada 1 - abajo)
+    drawLine(170, 530, 170, 595);
+    drawLine(170, 595, 120, 595);
+    
+    // ===== 14. Branch Control Logic =====
+    // AND gate (combina Branch signal + Zero flag)
+    // Salida del AND -> MUX que selecciona señal
+    drawLine(330, 700, 360, 700);
+    drawLine(360, 700, 360, 685);
+    
+    // NOT gate (para BNE - branch not equal)
+    drawLine(395, 720, 450, 720);
+    
+    // Señal de branch control -> selector del MUX PC
+    drawLine(377, 720, 377, 740);
+    drawLine(377, 740, 130, 740);
+    drawLine(130, 740, 130, 625);
+    
+    // Línea punteada desde CU hasta el selector del MUX
+    ctx.setLineDash([5, 5]);
+    drawLine(130, 625, 130, 620);
     ctx.setLineDash([]);
     
-    // Imm Gen -> Branch Adder
-    ctx.strokeStyle = '#FF8C00';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(280, 420);
-    ctx.lineTo(280, 480);
-    ctx.lineTo(85, 480);
-    ctx.lineTo(85, 500);
-    ctx.stroke();
-    drawArrow(85, 498, 85, 500, '#FF8C00', 2);
+    // ===== 15. Señales de Control (líneas punteadas) =====
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = '#999';
     
-    // PC -> Branch Adder
+    // Control -> RegWrite (Banco de Registros)
+    drawLine(740, 630, 740, 590);
+    drawLine(740, 590, 580, 590);
+    drawLine(580, 590, 580, 490);
+    drawArrow(580, 488, 580, 490, '#999');
+    
+    // Control -> ALUSrc (MUX ALU selector)
+    drawLine(800, 630, 800, 570);
+    drawLine(800, 570, 717, 570);
+    drawLine(717, 570, 717, 425);
+    
+    // Control -> MemWrite y MemRead (Memoria de Datos)
+    drawLine(860, 630, 860, 550);
+    drawLine(860, 550, 1020, 550);
+    drawLine(1020, 550, 1020, 520);
+    drawArrow(1020, 518, 1020, 520, '#999');
+    
+    // Control -> MemToReg (MUX WB selector)
+    drawLine(920, 650, 1157, 650);
+    drawLine(1157, 650, 1157, 425);
+    
+    // Control -> Branch (AND gate)
+    drawLine(760, 730, 305, 730);
+    drawLine(305, 730, 305, 720);
+    drawArrow(305, 718, 305, 720, '#999');
+    
+    // Control -> ALUOp (señal que controla la operación de la ALU)
+    drawLine(830, 630, 830, 560);
+    drawLine(830, 560, 830, 450);
+    
+    ctx.setLineDash([]);
     ctx.strokeStyle = '#666';
-    ctx.lineWidth = 2;
+}
+
+function drawLine(x1, y1, x2, y2) {
     ctx.beginPath();
-    ctx.moveTo(85, 260);
-    ctx.lineTo(100, 260);
-    ctx.lineTo(100, 470);
-    ctx.lineTo(95, 470);
-    ctx.lineTo(95, 500);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
     ctx.stroke();
-    drawArrow(95, 498, 95, 500, '#666', 2);
+}
+
+function drawArrow(x1, y1, x2, y2, color) {
+    const headlen = 8;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
     
-    // Branch Adder -> MUX PC
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.moveTo(95, 550);
-    ctx.lineTo(95, 580);
-    ctx.lineTo(85, 580);
-    ctx.lineTo(85, 410);
-    ctx.stroke();
-    drawArrow(85, 412, 85, 410, '#666', 2);
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(
+        x2 - headlen * Math.cos(angle - Math.PI / 6),
+        y2 - headlen * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.lineTo(
+        x2 - headlen * Math.cos(angle + Math.PI / 6),
+        y2 - headlen * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.closePath();
+    ctx.fill();
 }
 
 // ============================================
@@ -605,25 +617,73 @@ function drawProcessor() {
     
     // Título
     ctx.fillStyle = '#2C3E50';
-    ctx.font = 'bold 22px Arial';
+    ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('PROCESADOR RISC-V MONOCICLO - DATAPATH', canvas.width / 2, 35);
+    ctx.fillText('PROCESADOR RISC-V - ARQUITECTURA MONOCICLO', canvas.width / 2, 30);
     
     // Dibujar conexiones primero
+    if (animationState?.isAnimating) {
+        ctx.globalAlpha = 0.3;
+    }
     drawConnections();
+    ctx.globalAlpha = 1.0;
+    
+    // Dibujar buses activos si hay animación
+    if (animationState?.activeBuses) {
+        animationState.activeBuses.forEach(bus => {
+            const fromComp = components[bus.from];
+            const toComp = components[bus.to];
+            if (!fromComp || !toComp) return;
+            
+            const fromX = fromComp.x + fromComp.width / 2;
+            const fromY = fromComp.y + fromComp.height / 2;
+            const toX = toComp.x + toComp.width / 2;
+            const toY = toComp.y + toComp.height / 2;
+            
+            ctx.strokeStyle = bus.color;
+            ctx.lineWidth = 5;
+            ctx.shadowColor = bus.color;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        });
+    }
     
     // Dibujar componentes
     for (let key in components) {
         const comp = components[key];
         const isHov = hoveredComponent === key;
         const isSel = selectedComponent === key;
+        const isActive = animationState?.activeComponents?.has(key) || false;
         
-        if (comp.type === 'mux') drawMux(comp, isHov, isSel);
-        else if (comp.type === 'memory') drawMemory(comp, isHov, isSel);
-        else if (comp.type === 'regfile') drawRegFile(comp, isHov, isSel);
-        else if (comp.type === 'alu') drawALU(comp, isHov, isSel);
-        else if (comp.type === 'control') drawControl(comp, isHov, isSel);
-        else drawRect(comp, isHov, isSel);
+        if (comp.type === 'mux') drawMux(comp, isHov, isSel, isActive);
+        else if (comp.type === 'memory') drawMemory(comp, isHov, isSel, isActive);
+        else if (comp.type === 'regfile') drawRegFile(comp, isHov, isSel, isActive);
+        else if (comp.type === 'alu') drawALU(comp, isHov, isSel, isActive);
+        else if (comp.type === 'control') drawControl(comp, isHov, isSel, isActive);
+        else drawRect(comp, isHov, isSel, isActive);
+    }
+    
+    // Dibujar partículas de datos si hay animación
+    if (animationState?.dataFlowing) {
+        animationState.dataFlowing.forEach(particle => {
+            ctx.fillStyle = particle.color;
+            ctx.shadowColor = particle.color;
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(particle.currentX, particle.currentY, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 9px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(particle.label, particle.currentX, particle.currentY);
+        });
     }
 }
 
@@ -641,10 +701,10 @@ function updateInfoBox() {
         const comp = components[selectedComponent];
         const info = componentInfo[selectedComponent];
         infoBox.className = 'info-box selected';
-        infoBox.innerHTML = `<h3>${comp.label.replace('\n', ' ')}</h3><p style="white-space: pre-line;">${info}</p>`;
+        infoBox.innerHTML = `<h3>${comp.label.replace(/\n/g, ' ')}</h3><p style="white-space: pre-line;">${info}</p>`;
     } else {
         infoBox.className = 'info-box default';
-        infoBox.innerHTML = '<p>Haz clic en cualquier componente para ver su descripción detallada</p>';
+        infoBox.innerHTML = '<p>Haz clic en cualquier componente para ver su descripción</p>';
     }
 }
 
@@ -685,6 +745,8 @@ canvas.addEventListener('click', (e) => {
     updateInfoBox();
     drawProcessor();
 });
+
+console.log('✅ Diagrama limpio estilo profesional cargado');
 
 // ============================================
 // CÓDIGO DEL SIMULADOR
@@ -1510,7 +1572,6 @@ drawProcessor = function() {
     ctx.fillStyle = '#2C3E50';
     ctx.font = 'bold 22px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('PROCESADOR RISC-V MONOCICLO - DATAPATH', canvas.width / 2, 35);
     
     if (animationState.isAnimating) {
         ctx.globalAlpha = 0.3;

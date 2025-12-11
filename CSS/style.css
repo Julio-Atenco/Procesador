@@ -802,3 +802,34 @@ canvas {
     background: #4a5568;
     border-radius: 4px;
 }
+
+/* Estilos para la nueva leyenda */
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.legend-box {
+    display: inline-block;
+    width: 30px;
+    height: 20px;
+    border: 2px solid #333;
+    margin-right: 8px;
+    vertical-align: middle;
+    border-radius: 3px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.legend-item:hover {
+    background: #f0f0f0;
+    transform: translateX(5px);
+}
