@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador RISC-V</title>
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Selector de Vista -->
+    <div class="view-selector">
+        <button id="btnSimulator" class="active" onclick="showView('simulator')">⚙️ Simulador Interactivo</button>
+        <button id="btnDiagram" onclick="showView('diagram')">📊 Diagrama del Procesador</button>
+    </div>
+
+    <!-- ========== VISTA 1: SIMULADOR ========== -->
+    <div id="viewSimulator" class="view active">
+        <div class="simulator-container">
+            <header class="header">
+                <h1 class="title">Simulador RISC-V Monociclo 32-bit</h1>
+                <p class="subtitle">Procesador de ciclo único con soporte para instrucciones R, I, L, S y B</p>
+            </header>
+
+            <div class="main-grid">
+                <div class="left-panel">
+                    <section class="card">
+                        <h2 class="card-title">
+                            <span class="icon">📝</span>
+                            Banco de Instrucciones
+                        </h2>
+                        
+                        <div id="instructionList" class="instruction-list"></div>
+                        
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="newInstructionInput" 
+                                placeholder="Ej: addi x1, x0, 5"
+                                class="instruction-input"
+                            />
+                            <button id="addInstructionBtn" class="btn-add">➕</button>
+                        </div>
+                        
+                        <!-- Botones adicionales -->
+                        <div class="instruction-actions">
+                            <button id="loadMultipleBtn" class="btn-action btn-load">
+                                📄 Cargar Múltiples
+                            </button>
+                            <button id="clearAllBtn" class="btn-action btn-clear">
+                                🗑️ Limpiar Todo
+                            </button>
+                        </div>
+                        
+                        <div class="help-box">
+                            <div class="help-title">ℹ️ Ejemplos:</div>
+                            <ul class="help-list">
+                                <li>• addi x1, x0, 10</li>
+                                <li>• add x3, x1, x2</li>
+                                <li>• sw x1, 0, x2</li>
+                                <li>• lw x4, 0, x2</li>
+                                <li>• beq x1, x2, 2</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">Controles</h2>
+                        
+                        <div class="control-buttons">
+                            <button id="stepBtn" class="btn btn-step">▶️ Ejecutar Paso</button>
+                            <button id="runBtn" class="btn btn-run">⏩ Ejecutar Todo</button>
+                            <button id="resetBtn" class="btn btn-reset">🔄 Reiniciar</button>
+                        </div>
+                        
+                        <div class="pc-info">
+                            <div class="pc-value">
+                                <strong>PC (Program Counter):</strong> <span id="pcValue">0</span>
+                            </div>
+                            <div class="current-instruction">
+                                Instrucción actual: <span id="currentInstruction">N/A</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            <span class="icon">⚙️</span>
+                            Unidad de Control
+                        </h2>
+                        <div id="controlSignals" class="control-signals"></div>
+                    </section>
+                </div>
+
+                <div class="right-panel">
+                    <section class="card">
+                        <h2 class="card-title">
+                            <span class="icon">📊</span>
+                            Banco de Registros
+                        </h2>
+                        <div id="registerBank" class="register-bank"></div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            <span class="icon">🔧</span>
+                            ALU (Unidad Aritmético-Lógica)
+                        </h2>
+                        
+                        <div class="alu-display">
+                            <div class="alu-operand">
+                                <div class="alu-label">Operando A</div>
+                                <div id="aluOperandA" class="alu-value">0</div>
+                            </div>
+                            <div class="alu-operand">
+                                <div class="alu-label">Operando B</div>
+                                <div id="aluOperandB" class="alu-value">0</div>
+                            </div>
+                            <div class="alu-result">
+                                <div class="alu-label">Resultado</div>
+                                <div id="aluResult" class="alu-value">0</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            <span class="icon">💾</span>
+                            Memoria de Datos (Primeras 32 palabras)
+                        </h2>
+                        <div id="memoryBank" class="memory-bank"></div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            <span class="icon">📋</span>
+                            Log de Ejecución
+                        </h2>
+                        <div id="executionLog" class="execution-log">
+                            <div class="log-empty">No hay ejecuciones todavía...</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== VISTA 2: DIAGRAMA ========== -->
+    <div id="viewDiagram" class="view">
+        <div class="diagram-container">
+            <h1 class="diagram-title">Procesador RISC-V de Un Ciclo</h1>
+            <canvas id="processorCanvas" width="1600" height="900"></canvas>
+            
+            <div id="infoBox" class="info-box default">
+                <p>Haz clic en cualquier componente para ver su descripción detallada</p>
+            </div>
+
+            <div class="legend">
+                <h4>Leyenda de Buses y Señales:</h4>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #00BFFF;"></span>
+                    <span>Instrucción [31:0]</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #32CD32;"></span>
+                    <span>Datos de registros (d1, d2)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #DC143C;"></span>
+                    <span>Resultado ALU / Direcciones</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #9370DB;"></span>
+                    <span>Write Back</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #FF8C00;"></span>
+                    <span>Inmediatos</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #999; border-style: dashed;"></span>
+                    <span>Señales de control</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL PARA MÚLTIPLES INSTRUCCIONES ========== -->
+    <div id="multipleInstructionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📄 Cargar Múltiples Instrucciones</h2>
+                <button id="closeModalBtn" class="modal-close">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-description">
+                    Escribe o pega múltiples instrucciones (una por línea). 
+                    Las líneas que comiencen con # o // serán ignoradas.
+                </p>
+                
+                <textarea 
+                    id="multipleInstructionsText" 
+                    class="modal-textarea"
+                    placeholder="addi x1, x0, 10
+addi x2, x0, 20
+add x3, x1, x2
+sub x4, x2, x1
+# Esto es un comentario
+sw x3, 0, x5
+lw x6, 0, x5
+beq x1, x2, 2"
+                    rows="15"
+                ></textarea>
+                
+                <div class="modal-example">
+                    <strong>💡 Ejemplo de programa:</strong>
+                    <pre>addi x1, x0, 10
+addi x2, x0, 5
+add x3, x1, x2
+sub x4, x1, x2
+sw x3, 0, x5
+lw x6, 0, x5</pre>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="addMultipleBtn" class="btn-modal btn-modal-primary">
+                    ✓ Agregar Instrucciones
+                </button>
+                <button onclick="document.getElementById('multipleInstructionsModal').style.display='none'" 
+                        class="btn-modal btn-modal-secondary">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="JS/script.js"></script>
+</body>
+</html>
