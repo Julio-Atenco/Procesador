@@ -500,9 +500,9 @@ function drawConnections() {
     // ===== 23. Mux B -> Banco Registros (write back) =====
     drawLine(1400, 380, 1480, 380);
     drawLine(1480, 380, 1480, 50);
-    drawLine(1480, 50, 650, 50);
-    drawLine(650, 50, 650, 280);
-    drawArrow(650, 278, 650, 280, '#666');
+    drawLine(1480, 50, 700, 50);
+    drawLine(700, 50, 700, 280);
+    drawArrow(700, 278, 700, 280, '#666');
     
     // ===== 24. Mux C -> AND Gate =====
     drawLine(90, 660, 90, 680);
@@ -1008,7 +1008,7 @@ for (let i = 0; i < 32; i++) {
 const value = processor.memory[i];
 const memDiv = document.createElement('div');
 memDiv.className = 'memory-cell ' + (value !== 0 ? 'active' : 'inactive');
-memDiv.innerHTML = '<div class="memory-address">[${i * 4}]</div><input type="number" class="memory-value-input" value="${value}"onchange="updateMemoryValue(${i}, this.value)"onclick="this.select()">';
+memDiv.innerHTML = `<div class="memory-address">[${i * 4}]</div><input type="number" class="memory-value-input" value="${value}" onchange="updateMemoryValue(${i}, this.value)" onclick="this.select()">`;
 container.appendChild(memDiv);
 }
 }
@@ -1110,14 +1110,14 @@ const [rd, rs1, rs2] = regs;
 return [
 {
 step: 1,
-description: '🔵 PC envía dirección ${state.pc} a Memoria de Instrucciones',
+description: `🔵 PC envía dirección ${state.pc} a Memoria de Instrucciones`,
 components: ['pc', 'instMem'],
-buses: [{ from: 'pc', to: 'instMem', color: '#4A90E2', label: 'PC=${state.pc}' }],
+buses: [{ from: 'pc', to: 'instMem', color: '#4A90E2', label: `PC=${state.pc}` }],
 delay: 1200
 },
 {
 step: 2,
-description: '📋 Decodificación: rs1=x${rs1}, rs2=x${rs2}, rd=x${rd}. CU detecta tipo R',
+description: `📋 Decodificación: rs1=x${rs1}, rs2=x${rs2}, rd=x${rd}. CU detecta tipo R`,
 components: ['instMem', 'controlUnit', 'regFile'],
 buses: [
 { from: 'instMem', to: 'controlUnit', color: '#FF6B6B', label: 'opcode' },
@@ -1127,10 +1127,10 @@ delay: 1500
 },
 {
 step: 3,
-description: '📖 Banco lee dato1=${state.registers[rs1]} (x${rs1}) y dato2=${state.registers[rs2]} (x${rs2})',
+description: `📖 Banco lee dato1=${state.registers[rs1]} (x${rs1}) y dato2=${state.registers[rs2]} (x${rs2})`,
 components: ['regFile', 'muxA'],
 buses: [
-{ from: 'regFile', to: 'alu', color: '#95E1D3', label: 'd1=${state.registers[rs1]}' }
+{ from: 'regFile', to: 'alu', color: '#95E1D3', label: `d1=${state.registers[rs1]}` }
 ],
 delay: 1500
 },
@@ -1139,23 +1139,23 @@ step: 4,
 description: '🔄 Mux A selecciona dato2 (no inmediato). CU controla selección',
 components: ['muxA', 'alu', 'controlUnit'],
 buses: [
-{ from: 'muxA', to: 'alu', color: '#F38181', label: 'd2=${state.registers[rs2]}' }
+{ from: 'muxA', to: 'alu', color: '#F38181', label: `d2=${state.registers[rs2]}` }
 ],
 delay: 1500
 },
 {
 step: 5,
-description: '🧮 ALU calcula: ${state.registers[rs1]} ⊕ ${state.registers[rs2]} = ${state.internals.aluResult}',
+description: `🧮 ALU calcula: ${state.registers[rs1]} ⊕ ${state.registers[rs2]} = ${state.internals.aluResult}`,
 components: ['alu'],
 delay: 1800
 },
 {
 step: 6,
-description: '💾 Mux B selecciona resultado ALU (no memoria). Write-back a x${rd}',
+description: `💾 Mux B selecciona resultado ALU (no memoria). Write-back a x${rd}`,
 components: ['alu', 'muxB', 'regFile'],
 buses: [
-{ from: 'alu', to: 'muxB', color: '#AA96DA', label: '${state.internals.aluResult}' },
-{ from: 'muxB', to: 'regFile', color: '#FCBAD3', label: '→ x${rd}' }
+{ from: 'alu', to: 'muxB', color: '#AA96DA', label: `${state.internals.aluResult}` },
+{ from: 'muxB', to: 'regFile', color: '#FCBAD3', label: `→ x${rd}` }
 ],
 delay: 1500
 },
@@ -1173,14 +1173,14 @@ const [rd, rs1, imm] = regs;
 return [
 {
 step: 1,
-description: '🔵 PC=${state.pc} → Memoria de Instrucciones',
+description: `🔵 PC=${state.pc} → Memoria de Instrucciones`,
 components: ['pc', 'instMem'],
-buses: [{ from: 'pc', to: 'instMem', color: '#4A90E2', label: '${state.pc}' }],
+buses: [{ from: 'pc', to: 'instMem', color: '#4A90E2', label: `${state.pc}` }],
 delay: 1200
 },
 {
 step: 2,
-description: '📋 Decodificación tipo I: rs1=x${rs1}, rd=x${rd}, inmediato=${imm}',
+description: `📋 Decodificación tipo I: rs1=x${rs1}, rd=x${rd}, inmediato=${imm}`,
 components: ['instMem', 'controlUnit', 'muxE', 'signExtend'],
 buses: [
 { from: 'instMem', to: 'controlUnit', color: '#FF6B6B', label: 'opcode' },
@@ -1191,19 +1191,19 @@ delay: 1500
 },
 {
 step: 3,
-description: '🔢 Extensor de signo: inmediato ${imm} extendido a 32 bits',
+description: `🔢 Extensor de signo: inmediato ${imm} extendido a 32 bits`,
 components: ['signExtend', 'muxA'],
 buses: [
-{ from: 'signExtend', to: 'muxA', color: '#FFD93D', label: '${imm}' }
+{ from: 'signExtend', to: 'muxA', color: '#FFD93D', label: `${imm}` }
 ],
 delay: 1500
 },
 {
 step: 4,
-description: '📖 Banco lee x${rs1}=${state.registers[rs1]}',
+description: `📖 Banco lee x${rs1}=${state.registers[rs1]}`,
 components: ['regFile', 'alu'],
 buses: [
-{ from: 'regFile', to: 'alu', color: '#95E1D3', label: '${state.registers[rs1]}' }
+{ from: 'regFile', to: 'alu', color: '#95E1D3', label: `${state.registers[rs1]}` }
 ],
 delay: 1500
 },
@@ -1212,23 +1212,23 @@ step: 5,
 description: '🔄 Mux A selecciona inmediato (CU activa ALUSrc)',
 components: ['muxA', 'alu', 'controlUnit'],
 buses: [
-{ from: 'muxA', to: 'alu', color: '#FFD93D', label: '${imm}' }
+{ from: 'muxA', to: 'alu', color: '#FFD93D', label: `${imm}` }
 ],
 delay: 1500
 },
 {
 step: 6,
-description: '🧮 ALU: ${state.registers[rs1]} + ${imm} = ${state.internals.aluResult}',
+description: `🧮 ALU: ${state.registers[rs1]} + ${imm} = ${state.internals.aluResult}`,
 components: ['alu'],
 delay: 1800
 },
 {
 step: 7,
-description: '💾 Mux B → resultado ALU → x${rd}=${state.internals.aluResult}',
+description: `💾 Mux B → resultado ALU → x${rd}=${state.internals.aluResult}`,
 components: ['alu', 'muxB', 'regFile'],
 buses: [
-{ from: 'alu', to: 'muxB', color: '#AA96DA', label: '${state.internals.aluResult}' },
-{ from: 'muxB', to: 'regFile', color: '#FCBAD3', label: '→ x${rd}' }
+{ from: 'alu', to: 'muxB', color: '#AA96DA', label: `${state.internals.aluResult}` },
+{ from: 'muxB', to: 'regFile', color: '#FCBAD3', label: `→ x${rd}` }
 ],
 delay: 1500
 },
@@ -1556,7 +1556,7 @@ const pathMap = {
 'alu|muxB': [[1020,380], [1320,380], [1320,365], [1360,365]],
 'alu|muxC': [[970,450], [970,550], [90,550], [90,590]],
 'dataMem|muxB': [[1300,390], [1330,390], [1330,395], [1360,395]],
-'muxB|regFile': [[1400,380], [1480,380], [1480,50], [650,50], [650,280]],
+'muxB|regFile': [[1400,380], [1480,380], [1480,50], [700,50], [700,280]],
 'muxC|andGate': [[90,660], [90,680], [150,680], [150,690]],
 'ordenExtend|sumador': [[270,615], [270,770], [80,770], [80,310]],
 'ordenExtend|muxD': [[340,615], [340,750], [30,750], [30,400], [50,400]],
@@ -1855,6 +1855,14 @@ panel.innerHTML = `
             <div id="diagramQuickRegs" class="quick-registers"></div>
         </div>
         
+        
+        
+        <div class="panel-section">
+            <button id="backToSimulator" class="btn-control btn-back">
+                ← Volver al Simulador
+            </button>
+        </div>
+
         <div class="panel-section collapsible">
             <h4 onclick="toggleSection('controlSignalsSection')">
                 🎛️ Señales de Control
@@ -1863,12 +1871,6 @@ panel.innerHTML = `
             <div id="controlSignalsSection" class="collapsible-content">
                 <div id="diagramControlSignals" class="control-signals-mini"></div>
             </div>
-        </div>
-        
-        <div class="panel-section">
-            <button id="backToSimulator" class="btn-control btn-back">
-                ← Volver al Simulador
-            </button>
         </div>
     </div>
 `;
@@ -2412,6 +2414,4 @@ createDiagramControlPanel();
 const animStyle = document.createElement('style');
 animStyle.textContent = `@keyframes slideDown {from{transform: translate(-50%, -20px);opacity: 0;}to{transform: translate(-50%, 0);opacity: 1;}}`;
 document.head.appendChild(animStyle);
-console.log('✅ Diagrama del procesador RISC-V monociclo rediseñado completamente');
-console.log('📋 Componentes reorganizados según especificación');
-console.log('🔄 Flujos de ejecución implementados para R, I, L, S y B');
+
