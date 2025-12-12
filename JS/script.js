@@ -611,79 +611,222 @@ function drawArrow(x1, y1, x2, y2, color) {
 // ============================================
 
 function drawProcessor() {
-    // Fondo
+    // Renderer estático simplificado — la animación queda en la sección específica más abajo.
     ctx.fillStyle = '#FAFAFA';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Título
+
     ctx.fillStyle = '#2C3E50';
-    ctx.font = 'bold 20px Arial';
+    ctx.font = 'bold 22px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('PROCESADOR RISC-V - ARQUITECTURA MONOCICLO', canvas.width / 2, 30);
-    
-    // Dibujar conexiones primero
-    if (animationState?.isAnimating) {
-        ctx.globalAlpha = 0.3;
-    }
+
     drawConnections();
-    ctx.globalAlpha = 1.0;
-    
-    // Dibujar buses activos si hay animación
-    if (animationState?.activeBuses) {
-        animationState.activeBuses.forEach(bus => {
-            const fromComp = components[bus.from];
-            const toComp = components[bus.to];
-            if (!fromComp || !toComp) return;
-            
-            const fromX = fromComp.x + fromComp.width / 2;
-            const fromY = fromComp.y + fromComp.height / 2;
-            const toX = toComp.x + toComp.width / 2;
-            const toY = toComp.y + toComp.height / 2;
-            
-            ctx.strokeStyle = bus.color;
-            ctx.lineWidth = 5;
-            ctx.shadowColor = bus.color;
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.moveTo(fromX, fromY);
-            ctx.lineTo(toX, toY);
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-        });
-    }
-    
-    // Dibujar componentes
+
+    // Dibujar componentes sin lógica de animación aquí (la animación se maneja por el override posterior).
     for (let key in components) {
         const comp = components[key];
         const isHov = hoveredComponent === key;
         const isSel = selectedComponent === key;
-        const isActive = animationState?.activeComponents?.has(key) || false;
+        const isActive = false;        // ...existing code...
+        // ============================================
+        // FUNCIÓN PRINCIPAL: ANIMAR EJECUCIÓN
+        // ============================================
+        function animateInstructionExecution(instrText, processorState) {
+            if (!document.getElementById('viewDiagram').classList.contains('active')) {
+                return Promise.resolve();
+            }
         
+            animationState.isAnimating = true;
+            animationState.activeComponents.clear();
+            animationState.activeBuses = [];
+            animationState.dataFlowing = [];
+            
+            const { opcode, regs } = parseInstruction(instrText);
+            const opcodeValue = getOpcodeValue(opcode);
+            
+            const isRType = opcodeValue === 0b0110011;
+            const isIType = opcodeValue === 0b0010011;
+            const isLoad = opcodeValue === 0b0000011;
+            const isStore = opcodeValue === 0b0100011;
+            const isBranch = opcodeValue === 0b1100011;
+            
+            let animationSequence = [];
+            
+            if (isRType) {
+                animationSequence = getRTypeAnimationSequence(regs, processorState);
+            } else if (isIType) {
+                animationSequence = getITypeAnimationSequence(regs, processorState);
+            } else if (isLoad) {
+                animationSequence = getLoadAnimationSequence(regs, processorState);
+            } else if (isStore) {
+                animationSequence = getStoreAnimationSequence(regs, processorState);
+            } else if (isBranch) {
+                animationSequence = getBranchAnimationSequence(regs, processorState);
+            }
+            
+            // ahora devuelve la promesa que resuelve cuando termina toda la animación y los datos
+            return executeAnimationSequence(animationSequence);
+        }
+        
+        // ============================================
+        // EJECUTAR SECUENCIA (ahora devuelve Promise)
+        // ============================================
+        function executeAnimationSequence(sequence) {
+            return new Promise((resolve) => {
+                let currentIndex = 0;
+                
+                function executeNextStep() {
+                    if (currentIndex >= sequence.length) {
+                        // esperar a que todas las partículas terminen
+                        const waitParticles = () => {
+                            if (!animationState.dataFlowing || animationState.dataFlowing.length === 0) {
+                                // pequeña pausa visual antes de limpiar
+                                setTimeout(() => {
+                                    animationState.isAnimating = false;
+                                    animationState.activeComponents.clear();
+                                    animationState.activeBuses = [];
+                                    drawProcessor();
+                                    resolve();
+                                }, 200);
+                            } else {
+                                requestAnimationFrame(waitParticles);
+                            }
+                        };
+                        // si no hay buses iniciados, resolver inmediatamente
+                        waitParticles();
+                        return;
+                    }
+                    
+                    const step = sequence[currentIndex];
+                    
+                    updateStepDescription(step.description);
+                    
+                    animationState.activeComponents.clear();
+                    (step.components || []).forEach(comp => animationState.activeComponents.add(comp));
+                    
+                    animationState.activeBuses = step.buses || [];
+                    
+                    if (step.buses) {
+                        animateDataFlow(step.buses); // animateDataFlow añade partículas a animationState.dataFlowing
+                    }
+                    
+                    drawProcessor();
+                    
+                    currentIndex++;
+                    setTimeout(executeNextStep, step.delay || 600);
+                }
+                
+                executeNextStep();
+            });
+        }
+        
+        // ============================================
+        // AUX: sleep
+        // ============================================
+        function sleep(ms) {
+            return new Promise(res => setTimeout(res, ms));
+        }
+        
+        // ============================================
+        // SOBRESCRIBIR executeInstruction para esperar animación
+        // ============================================
+        const originalExecuteInstruction = executeInstruction;
+        executeInstruction = async function() {
+            const oldPC = processor.pc;
+            // ejecutar la lógica de la instrucción (cambia estado)
+            originalExecuteInstruction();
+            processor.oldPC = oldPC;
+            
+            // si estamos en la vista del diagrama, animar y esperar a que termine
+            if (document.getElementById('viewDiagram')?.classList.contains('active')) {
+                const instrText = processor.instructions[oldPC];
+                if (instrText) {
+                    try {
+                        await animateInstructionExecution(instrText, processor);
+                    } catch (e) {
+                        console.error('Animation error', e);
+                    }
+                }
+            }
+        };
+        
+        // ============================================
+        // MODIFICAR runProgram para esperar animación entre instrucciones
+        // ============================================
+        async function runProgram() {
+            processor.isRunning = true;
+            while (processor.pc < processor.instructions.length && processor.isRunning) {
+                await executeInstruction();
+                updateUI();
+                // esperar un poco (configurable)
+                await sleep(animationConfig.duration || 800);
+            }
+            processor.isRunning = false;
+            updateUI();
+        }
+        
+        // ============================================
+        // CONFIGURAR LISTENERS: usar executeInstruction() (async) en panel
+        // ============================================
+        function setupDiagramControlListeners() {
+            // ...existing code...
+        
+            // Botón Step
+            document.getElementById('diagramStepBtn')?.addEventListener('click', async () => {
+                if (processor.pc < processor.instructions.length) {
+                    await executeInstruction();
+                    updateDiagramControlPanel();
+                } else {
+                    showNotification('⚠️ No hay más instrucciones', 'warning');
+                }
+            });
+            
+            // Botón Run
+            let runLoopActive = false;
+            document.getElementById('diagramRunBtn')?.addEventListener('click', async () => {
+                if (processor.isRunning) {
+                    // Pausar
+                    processor.isRunning = false;
+                    runLoopActive = false;
+                    document.getElementById('diagramRunBtn').style.display = 'inline-block';
+                    document.getElementById('diagramPauseBtn').style.display = 'none';
+                    showNotification('⏸️ Ejecución pausada', 'info');
+                    return;
+                }
+                
+                processor.isRunning = true;
+                runLoopActive = true;
+                document.getElementById('diagramRunBtn').style.display = 'none';
+                document.getElementById('diagramPauseBtn').style.display = 'inline-block';
+                
+                const speed = parseInt(document.getElementById('diagramSpeedSlider').value) || 800;
+                const delay = speed;
+                
+                while (processor.pc < processor.instructions.length && processor.isRunning && runLoopActive) {
+                    await executeInstruction();
+                    updateDiagramControlPanel();
+                    // esperar entre instrucciones (permite ver resultado)
+                    await sleep(delay);
+                }
+                
+                processor.isRunning = false;
+                runLoopActive = false;
+                document.getElementById('diagramRunBtn').style.display = 'inline-block';
+                document.getElementById('diagramPauseBtn').style.display = 'none';
+                if (processor.pc >= processor.instructions.length) {
+                    showNotification('✅ Programa completado', 'success');
+                }
+            });
+        
+            // ...existing code...
+        }
+        // ...existing code...
+
         if (comp.type === 'mux') drawMux(comp, isHov, isSel, isActive);
         else if (comp.type === 'memory') drawMemory(comp, isHov, isSel, isActive);
         else if (comp.type === 'regfile') drawRegFile(comp, isHov, isSel, isActive);
         else if (comp.type === 'alu') drawALU(comp, isHov, isSel, isActive);
         else if (comp.type === 'control') drawControl(comp, isHov, isSel, isActive);
         else drawRect(comp, isHov, isSel, isActive);
-    }
-    
-    // Dibujar partículas de datos si hay animación
-    if (animationState?.dataFlowing) {
-        animationState.dataFlowing.forEach(particle => {
-            ctx.fillStyle = particle.color;
-            ctx.shadowColor = particle.color;
-            ctx.shadowBlur = 20;
-            ctx.beginPath();
-            ctx.arc(particle.currentX, particle.currentY, 10, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 9px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(particle.label, particle.currentX, particle.currentY);
-        });
     }
 }
 
@@ -1192,10 +1335,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Configuración de animación
 const animationConfig = {
-    duration: 800,
-    pulseSpeed: 50,
-    dataFlowSpeed: 30,
-    highlightDuration: 1500
+    duration: 2000,
+    pulseSpeed: 100,
+    dataFlowSpeed: 60,
+    highlightDuration: 3000
 };
 
 // Estado de animación
@@ -1260,7 +1403,7 @@ function getRTypeAnimationSequence(regs, state) {
             buses: [
                 { from: 'pc', to: 'instMem', color: '#4A90E2', label: `PC=${state.pc}` }
             ],
-            delay: 500
+            delay: 1500
         },
         {
             step: 2,
@@ -1270,7 +1413,7 @@ function getRTypeAnimationSequence(regs, state) {
                 { from: 'instMem', to: 'controlUnit', color: '#00BFFF', label: 'opcode' },
                 { from: 'instMem', to: 'regFile', color: '#32CD32', label: `rs1=x${rs1}` }
             ],
-            delay: 600
+            delay: 1800
         },
         {
             step: 3,
@@ -1279,13 +1422,13 @@ function getRTypeAnimationSequence(regs, state) {
             buses: [
                 { from: 'regFile', to: 'alu', color: '#32CD32', label: `${state.registers[rs1]}` }
             ],
-            delay: 600
+            delay: 1800
         },
         {
             step: 4,
             description: `Execute: ALU calcula resultado = ${state.internals.aluResult}`,
             components: ['alu', 'aluControl'],
-            delay: 700
+            delay: 2000
         },
         {
             step: 5,
@@ -1295,7 +1438,7 @@ function getRTypeAnimationSequence(regs, state) {
                 { from: 'alu', to: 'muxWB', color: '#DC143C', label: `${state.internals.aluResult}` },
                 { from: 'muxWB', to: 'regFile', color: '#9370DB', label: `${state.internals.aluResult}` }
             ],
-            delay: 600
+            delay: 1800
         }
     ];
 }
@@ -1308,7 +1451,7 @@ function getITypeAnimationSequence(regs, state) {
             description: `Fetch: Leer instrucción desde PC=${state.pc}`,
             components: ['pc', 'instMem'],
             buses: [{ from: 'pc', to: 'instMem', color: '#4A90E2', label: `PC=${state.pc}` }],
-            delay: 500
+            delay: 1500
         },
         {
             step: 2,
@@ -1317,7 +1460,7 @@ function getITypeAnimationSequence(regs, state) {
             buses: [
                 { from: 'instMem', to: 'immGen', color: '#FF8C00', label: `imm=${imm}` }
             ],
-            delay: 600
+            delay: 1800
         },
         {
             step: 3,
@@ -1327,13 +1470,13 @@ function getITypeAnimationSequence(regs, state) {
                 { from: 'regFile', to: 'alu', color: '#32CD32', label: `${state.registers[rs1]}` },
                 { from: 'immGen', to: 'muxALU', color: '#FF8C00', label: `${imm}` }
             ],
-            delay: 600
+            delay: 1800
         },
         {
             step: 4,
             description: `Execute: ${state.registers[rs1]} + ${imm} = ${state.internals.aluResult}`,
             components: ['alu', 'aluControl'],
-            delay: 700
+            delay: 2000
         },
         {
             step: 5,
@@ -1343,7 +1486,7 @@ function getITypeAnimationSequence(regs, state) {
                 { from: 'alu', to: 'muxWB', color: '#DC143C', label: `${state.internals.aluResult}` },
                 { from: 'muxWB', to: 'regFile', color: '#9370DB', label: `${state.internals.aluResult}` }
             ],
-            delay: 600
+            delay: 1800
         }
     ];
 }
@@ -1357,7 +1500,7 @@ function getLoadAnimationSequence(regs, state) {
             description: `Fetch: Leer instrucción`,
             components: ['pc', 'instMem'],
             buses: [{ from: 'pc', to: 'instMem', color: '#4A90E2', label: `PC=${state.pc}` }],
-            delay: 500
+            delay: 1500
         },
         {
             step: 2,
@@ -1367,14 +1510,14 @@ function getLoadAnimationSequence(regs, state) {
                 { from: 'regFile', to: 'alu', color: '#32CD32', label: `${state.registers[rs1]}` },
                 { from: 'immGen', to: 'muxALU', color: '#FF8C00', label: `${offset}` }
             ],
-            delay: 700
+            delay: 2000
         },
         {
             step: 3,
             description: `Memory Read: MEM[${addr}] = ${state.internals.memData}`,
             components: ['alu', 'dataMem'],
             buses: [{ from: 'alu', to: 'dataMem', color: '#DC143C', label: `addr=${addr}` }],
-            delay: 700
+            delay: 2000
         },
         {
             step: 4,
@@ -1384,7 +1527,7 @@ function getLoadAnimationSequence(regs, state) {
                 { from: 'dataMem', to: 'muxWB', color: '#9370DB', label: `${state.internals.memData}` },
                 { from: 'muxWB', to: 'regFile', color: '#9370DB', label: `${state.internals.memData}` }
             ],
-            delay: 600
+            delay: 1800
         }
     ];
 }
@@ -1398,21 +1541,21 @@ function getStoreAnimationSequence(regs, state) {
             description: `Fetch: Leer instrucción`,
             components: ['pc', 'instMem'],
             buses: [{ from: 'pc', to: 'instMem', color: '#4A90E2', label: `PC=${state.pc}` }],
-            delay: 500
+            delay: 1500
         },
         {
             step: 2,
             description: `Calculate Address: ${state.registers[rs1]} + ${offset} = ${addr}`,
             components: ['regFile', 'immGen', 'alu'],
             buses: [{ from: 'regFile', to: 'alu', color: '#32CD32', label: `${state.registers[rs1]}` }],
-            delay: 700
+            delay: 2000
         },
         {
             step: 3,
             description: `Memory Write: MEM[${addr}] = ${state.registers[rs2]}`,
             components: ['regFile', 'dataMem'],
             buses: [{ from: 'regFile', to: 'dataMem', color: '#32CD32', label: `${state.registers[rs2]}` }],
-            delay: 700
+            delay: 2000
         }
     ];
 }
@@ -1425,19 +1568,19 @@ function getBranchAnimationSequence(regs, state) {
             step: 1,
             description: `Fetch: Leer instrucción`,
             components: ['pc', 'instMem'],
-            delay: 500
+            delay: 1500
         },
         {
             step: 2,
             description: `Compare: x${rs1}=${state.registers[rs1]} vs x${rs2}=${state.registers[rs2]}`,
             components: ['regFile', 'alu'],
-            delay: 700
+            delay: 2000
         },
         {
             step: 3,
             description: taken ? `✓ BRANCH TAKEN → PC=${state.pc}` : `✗ NOT TAKEN → PC=${state.pc}`,
             components: taken ? ['adderBranch', 'muxPC', 'pc'] : ['adderPC4', 'muxPC', 'pc'],
-            delay: 600
+            delay: 1800
         }
     ];
 }
@@ -1455,7 +1598,7 @@ function executeAnimationSequence(sequence) {
                 animationState.activeComponents.clear();
                 animationState.activeBuses = [];
                 drawProcessor();
-            }, 800);
+            }, 2000);
             return;
         }
         
@@ -1475,7 +1618,7 @@ function executeAnimationSequence(sequence) {
         drawProcessor();
         
         currentIndex++;
-        setTimeout(executeNextStep, step.delay || 600);
+        setTimeout(executeNextStep, step.delay || 1800);
     }
     
     executeNextStep();
@@ -1485,50 +1628,115 @@ function executeAnimationSequence(sequence) {
 // ANIMACIÓN DE FLUJO DE DATOS
 // ============================================
 function animateDataFlow(buses) {
+    // Mapa de rutas predefinidas que reflejan las mismas coordenadas usadas
+    // en `drawConnections`. Cada entrada es un array de puntos [x,y].
+    const pathMap = {
+        'pc|instMem': [[60,380],[220,380],[220,190],[320,190]],
+        'instMem|controlUnit': [[320,330],[320,600],[720,600],[830,690]],
+        'instMem|regFile': [[320,360],[440,360],[440,110],[500,110],[500,335],[580,400]],
+        'instMem|signExtend': [[320,330],[360,330],[360,245],[560,245],[615,245]],
+        'regFile|alu': [[580,400],[670,350],[750,350],[750,360],[790,360],[830,390]],
+        'alu|muxWB': [[830,390],[895,390],[1125,390],[1125,375],[1140,375],[1157.5,390]],
+        'muxWB|regFile': [[1157.5,390],[1210,390],[1210,440],[540,440],[540,490],[580,400]],
+        'signExtend|muxALU': [[615,245],[670,245],[685,245],[685,405],[700,405],[717.5,390]],
+        'alu|dataMem': [[830,390],[895,390],[895,350],[920,350],[1020,380]],
+        'regFile|dataMem': [[580,400],[690,410],[690,540],[905,540],[905,410],[920,410],[1020,380]],
+        'dataMem|muxWB': [[1020,380],[1120,380],[1130,380],[1130,405],[1140,405],[1157.5,390]]
+    };
+
+    function resolveName(name) {
+        const map = { immGen: 'signExtend', immgen: 'signExtend', aluControl: 'alu', adderBranch: 'ordenSignExtend' };
+        return map[name] || name;
+    }
+
+    function getPathForBus(from, to) {
+        const f = resolveName(from);
+        const t = resolveName(to);
+        const key = `${f}|${t}`;
+
+        const fromComp = components[f];
+        const toComp = components[t];
+
+        const fromCenter = fromComp ? [fromComp.x + fromComp.width / 2, fromComp.y + fromComp.height / 2] : null;
+        const toCenter = toComp ? [toComp.x + toComp.width / 2, toComp.y + toComp.height / 2] : null;
+
+        if (pathMap[key]) {
+            // asegurar que el primer y último punto coincidan con los centros reales
+            const pts = pathMap[key].map(p => ({ x: p[0], y: p[1] }));
+            if (fromCenter) pts.unshift({ x: fromCenter[0], y: fromCenter[1] });
+            if (toCenter) pts.push({ x: toCenter[0], y: toCenter[1] });
+            return pts;
+        }
+
+        // Fallback: línea recta entre centros
+        if (fromCenter && toCenter) return [{ x: fromCenter[0], y: fromCenter[1] }, { x: toCenter[0], y: toCenter[1] }];
+        return [];
+    }
+
     buses.forEach((bus, index) => {
         setTimeout(() => {
-            const fromComp = components[bus.from];
-            const toComp = components[bus.to];
-            
-            if (!fromComp || !toComp) return;
-            
-            const fromX = fromComp.x + fromComp.width / 2;
-            const fromY = fromComp.y + fromComp.height / 2;
-            const toX = toComp.x + toComp.width / 2;
-            const toY = toComp.y + toComp.height / 2;
-            
+            const path = getPathForBus(bus.from, bus.to);
+            if (!path || path.length < 2) return;
+
+            const id = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+
             animationState.dataFlowing.push({
-                fromX, fromY, toX, toY,
-                currentX: fromX,
-                currentY: fromY,
+                id,
+                path, // array of {x,y}
+                segmentIndex: 0,
+                segmentProgress: 0,
+                currentX: path[0].x,
+                currentY: path[0].y,
                 color: bus.color,
                 label: bus.label,
-                progress: 0,
-                speed: 0.05
+                speed: 0.015 + (bus.speed || 0)
             });
-            
-            animateParticle(animationState.dataFlowing.length - 1);
-        }, index * 200);
+
+            animateParticleById(id);
+        }, index * 400);
     });
 }
 
-function animateParticle(index) {
-    const particle = animationState.dataFlowing[index];
-    if (!particle || particle.progress >= 1) return;
-    
-    particle.progress += particle.speed;
-    particle.currentX = particle.fromX + (particle.toX - particle.fromX) * particle.progress;
-    particle.currentY = particle.fromY + (particle.toY - particle.fromY) * particle.progress;
-    
+function animateParticleById(id) {
+    const particle = animationState.dataFlowing.find(p => p.id === id);
+    if (!particle) return;
+
+    const path = particle.path;
+    const seg = particle.segmentIndex;
+    const a = path[seg];
+    const b = path[seg + 1];
+    if (!a || !b) {
+        // terminado
+        const idx = animationState.dataFlowing.findIndex(p => p.id === id);
+        if (idx !== -1) animationState.dataFlowing.splice(idx, 1);
+        drawProcessor();
+        return;
+    }
+
+    particle.segmentProgress += particle.speed;
+    if (particle.segmentProgress > 1) particle.segmentProgress = 1;
+
+    particle.currentX = a.x + (b.x - a.x) * particle.segmentProgress;
+    particle.currentY = a.y + (b.y - a.y) * particle.segmentProgress;
+
     drawProcessor();
-    
-    if (particle.progress < 1) {
-        requestAnimationFrame(() => animateParticle(index));
+
+    if (particle.segmentProgress < 1) {
+        requestAnimationFrame(() => animateParticleById(id));
     } else {
-        setTimeout(() => {
-            animationState.dataFlowing.splice(index, 1);
-            drawProcessor();
-        }, 300);
+        // avanzar al siguiente segmento
+        particle.segmentIndex++;
+        particle.segmentProgress = 0;
+        if (particle.segmentIndex >= path.length - 1) {
+            // finalizado
+            setTimeout(() => {
+                const idx = animationState.dataFlowing.findIndex(p => p.id === id);
+                if (idx !== -1) animationState.dataFlowing.splice(idx, 1);
+                drawProcessor();
+            }, 800);
+        } else {
+            requestAnimationFrame(() => animateParticleById(id));
+        }
     }
 }
 
@@ -1600,6 +1808,43 @@ drawProcessor = function() {
         ctx.stroke();
         ctx.shadowBlur = 0;
     });
+    
+    // --- NUEVO: dibujar trazos iluminados siguiendo las partículas ---
+    animationState.dataFlowing.forEach(particle => {
+        const path = particle.path;
+        if (!path || path.length < 2) return;
+        
+        ctx.save();
+        ctx.strokeStyle = particle.color;
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = particle.color;
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        
+        // Empezar en el primer punto del path
+        ctx.moveTo(path[0].x, path[0].y);
+        
+        // Dibujar segmentos completos hasta el segmento actual
+        for (let i = 0; i < particle.segmentIndex; i++) {
+            const p = path[i + 1];
+            if (p) ctx.lineTo(p.x, p.y);
+        }
+        
+        // Dibujar el segmento parcial actual (hasta la posición de la partícula)
+        const segA = path[particle.segmentIndex];
+        const segB = path[particle.segmentIndex + 1];
+        if (segA && segB) {
+            const t = particle.segmentProgress;
+            const ix = segA.x + (segB.x - segA.x) * t;
+            const iy = segA.y + (segB.y - segA.y) * t;
+            ctx.lineTo(ix, iy);
+        }
+        
+        ctx.stroke();
+        ctx.restore();
+    });
+    // --- FIN NUEVO ---
     
     // Dibujar componentes
     for (let key in components) {
@@ -1734,7 +1979,7 @@ function createDiagramControlPanel() {
             <div class="panel-section">
                 <h4>⚡ Velocidad de Animación</h4>
                 <div class="speed-control-container">
-                    <input type="range" id="diagramSpeedSlider" min="200" max="2000" value="800" step="100">
+                    <input type="range" id="diagramSpeedSlider" min="500" max="5000" value="2000" step="100">
                     <div class="speed-labels">
                         <span>Rápido</span>
                         <span id="diagramSpeedValue">800ms</span>
