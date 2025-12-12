@@ -1,21 +1,4 @@
 // ============================================
-// SELECTOR DE VISTAS
-// ============================================
-function showView(viewName) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.view-selector button').forEach(b => b.classList.remove('active'));
-    
-    if (viewName === 'diagram') {
-        document.getElementById('viewDiagram').classList.add('active');
-        document.getElementById('btnDiagram').classList.add('active');
-        setTimeout(() => drawProcessor(), 100);
-    } else {
-        document.getElementById('viewSimulator').classList.add('active');
-        document.getElementById('btnSimulator').classList.add('active');
-    }
-}
-
-// ============================================
 // CÓDIGO DEL DIAGRAMA - BASADO EN ESPECIFICACIÓN
 // ============================================
 const canvas = document.getElementById('processorCanvas');
@@ -39,11 +22,11 @@ const components = {
     
     // Memoria de Instrucciones (centro-izquierda arriba)
     instMem: { x: 200, y: 40, width: 200, height: 300, label: 'MEMORIA DE\nINSTRUCCIONES', 
-               color: '#999', type: 'memory' },
+            color: '#999', type: 'memory' },
     
     // Unidad de Control (abajo de memoria de instrucciones)
     controlUnit: { x: 200, y: 380, width: 200, height: 140, label: 'UNIDAD DE\nCONTROL (CU)', 
-                   color: '#999', type: 'control' },
+            color: '#999', type: 'control' },
     
     // Mux E - selecciona rs2 o rd (derecha de memoria de instrucciones)
     muxE: { x: 450, y: 120, width: 40, height: 80, label: 'MUX E', color: '#CCC', type: 'mux',
@@ -51,15 +34,15 @@ const components = {
     
     // Extensor de Signo (derecha del Mux E)
     signExtend: { x: 550, y: 120, width: 130, height: 80, label: 'EXTENSOR\nDE SIGNO', 
-                  color: '#999', type: 'rect' },
+            color: '#999', type: 'rect' },
     
     // Componente Orden y Extensor de Signo para branches (abajo izquierda)
     ordenExtend: { x: 200, y: 580, width: 140, height: 70, label: 'ORDEN &\nEXTEND', 
-                   color: '#999', type: 'rect' },
+            color: '#999', type: 'rect' },
     
     // Banco de Registros (centro)
     regFile: { x: 550, y: 280, width: 200, height: 200, label: 'BANCO DE\nREGISTROS', 
-               color: '#999', type: 'regfile' },
+            color: '#999', type: 'regfile' },
     
     // Mux A - selecciona dato2 o inmediato para ALU (derecha del banco)
     muxA: { x: 820, y: 340, width: 40, height: 80, label: 'MUX A', color: '#CCC', type: 'mux',
@@ -70,7 +53,7 @@ const components = {
     
     // Memoria de Datos (derecha)
     dataMem: { x: 1100, y: 240, width: 200, height: 300, label: 'MEMORIA\nDE DATOS', 
-               color: '#999', type: 'memory' },
+            color: '#999', type: 'memory' },
     
     // Mux B - selecciona resultado ALU o dato de memoria (derecha de memoria)
     muxB: { x: 1360, y: 340, width: 40, height: 80, label: 'MUX B', color: '#CCC', type: 'mux',
@@ -431,8 +414,8 @@ function drawConnections() {
     drawArrow(448, 160, 450, 160, '#666');
     
     // ===== 11. Memoria Instrucciones -> Orden & Extend =====
-    drawLine(300, 340, 300, 550);
-    drawLine(300, 550, 200, 550);
+    drawLine(310, 340, 310, 550);
+    drawLine(310, 550, 200, 550);
     drawLine(200, 550, 200, 580);
     drawArrow(200, 578, 200, 580, '#666');
     
@@ -441,12 +424,10 @@ function drawConnections() {
     drawArrow(548, 160, 550, 160, '#666');
     
     // ===== 13. fun7 -> Extensor Signo (concatenación) =====
-    ctx.font = '10px Arial';
-    ctx.fillStyle = '#666';
-    ctx.fillText('fun7', 490, 110);
-    drawLine(520, 115, 615, 115);
-    drawLine(615, 115, 615, 120);
-    drawArrow(615, 118, 615, 120, '#666');
+    //Arreglar
+    drawLine(400, 115, 515, 115);
+    drawLine(515, 115, 515, 155);
+    drawArrow(515, 135, 515, 155, '#666');
     
     // ===== 14. Extensor Signo -> Mux A (entrada 1 - inmediato) =====
     drawLine(680, 160, 780, 160);
@@ -483,8 +464,10 @@ function drawConnections() {
     drawArrow(1098, 350, 1100, 350, '#666');
     
     // ===== 20. ALU -> Mux B (entrada 0 - resultado ALU) =====
-    drawLine(1020, 380, 1320, 380);
-    drawLine(1320, 380, 1320, 365);
+    drawLine(1020, 380, 1060, 380);
+    drawLine(1060, 380, 1060, 200);
+    drawLine(1060, 200, 1320, 200);
+    drawLine(1320, 200, 1320, 365);
     drawLine(1320, 365, 1360, 365);
     
     // ===== 21. ALU -> Mux C (LSB para control de branches) =====
@@ -539,16 +522,18 @@ function drawConnections() {
     
     // Control -> Mux D
     drawLine(200, 470, 100, 470);
-    drawLine(100, 470, 100, 435);
+    drawLine(100, 470, 100, 420)
+    drawLine(100, 420, 92, 430);
     
     // Control -> Mux E
-    drawLine(350, 380, 350, 100);
-    drawLine(350, 100, 470, 100);
-    drawLine(470, 100, 470, 205);
+    drawLine(400, 420, 470, 420);
+    drawLine(470, 420, 470, 205);
+    
     
     // Control -> Mux C
     drawLine(200, 480, 110, 480);
     drawLine(110, 480, 110, 625);
+    drawLine(110, 625, 95, 625);
     
     // Control -> Banco Registros (RegWrite)
     drawLine(400, 440, 650, 440);
@@ -634,7 +619,7 @@ function drawProcessor() {
 
 function isPointInComponent(x, y, comp) {
     return x >= comp.x && x <= comp.x + comp.width && 
-           y >= comp.y && y <= comp.y + comp.height;
+            y >= comp.y && y <= comp.y + comp.height;
 }
 
 function updateInfoBox() {
@@ -688,403 +673,6 @@ canvas.addEventListener('click', (e) => {
 });
 
 console.log('✅ Diagrama limpio estilo profesional cargado');
-
-// ============================================
-// CÓDIGO DEL SIMULADOR
-// ============================================
-const processor = {
-    registers: Array(32).fill(0),
-    memory: Array(256).fill(0),
-    pc: 0,
-    instructions: ['addi x1, x0, 10', 'addi x2, x0, 20', 'add x3, x1, x2', 'sub x4, x2, x1'],
-    controlSignals: {
-        RegWrite: false, ALUSrc: false, MemWrite: false,
-        MemRead: false, MemToReg: false, Branch: false, ALUOp: '00'
-    },
-    internals: {
-        instruction: '', opcode: 0, rd: 0, rs1: 0, rs2: 0,
-        funct3: 0, funct7: 0, imm: 0, aluResult: 0,
-        readData1: 0, readData2: 0, memData: 0
-    },
-    executionLog: [],
-    isRunning: false
-};
-
-function parseInstruction(instrText) {
-    const parts = instrText.trim().toLowerCase().replace(/,/g, '').split(/\s+/);
-    const opcode = parts[0];
-    const regs = parts.slice(1).map(r => r.startsWith('x') ? parseInt(r.substring(1)) : parseInt(r));
-    return { opcode, regs };
-}
-
-function getOpcodeValue(mnemonic) {
-    const opcodes = {
-        'add': 0b0110011, 'sub': 0b0110011, 'and': 0b0110011, 'or': 0b0110011, 'xor': 0b0110011,
-        'slt': 0b0110011, 'sltu': 0b0110011, 'sll': 0b0110011, 'srl': 0b0110011, 'sra': 0b0110011,
-        'addi': 0b0010011, 'andi': 0b0010011, 'ori': 0b0010011, 'xori': 0b0010011,
-        'slti': 0b0010011, 'sltiu': 0b0010011, 'slli': 0b0010011, 'srli': 0b0010011, 'srai': 0b0010011,
-        'lw': 0b0000011, 'lh': 0b0000011, 'lb': 0b0000011, 'lhu': 0b0000011, 'lbu': 0b0000011,
-        'sw': 0b0100011, 'sh': 0b0100011, 'sb': 0b0100011,
-        'beq': 0b1100011, 'bne': 0b1100011, 'blt': 0b1100011, 'bge': 0b1100011,
-        'bltu': 0b1100011, 'bgeu': 0b1100011
-    };
-    return opcodes[mnemonic] || 0;
-}
-
-function getFunct3(mnemonic) {
-    const funct3Map = {
-        'add': 0b000, 'sub': 0b000, 'sll': 0b001, 'slt': 0b010, 'sltu': 0b011,
-        'xor': 0b100, 'srl': 0b101, 'sra': 0b101, 'or': 0b110, 'and': 0b111,
-        'addi': 0b000, 'slti': 0b010, 'sltiu': 0b011, 'xori': 0b100, 'ori': 0b110,
-        'andi': 0b111, 'slli': 0b001, 'srli': 0b101, 'srai': 0b101,
-        'lb': 0b000, 'lh': 0b001, 'lw': 0b010, 'lbu': 0b100, 'lhu': 0b101,
-        'sb': 0b000, 'sh': 0b001, 'sw': 0b010,
-        'beq': 0b000, 'bne': 0b001, 'blt': 0b100, 'bge': 0b101, 'bltu': 0b110, 'bgeu': 0b111
-    };
-    return funct3Map[mnemonic] || 0;
-}
-
-function getFunct7(mnemonic) {
-    return ['sub', 'sra', 'srai'].includes(mnemonic) ? 0b0100000 : 0b0000000;
-}
-
-function executeALU(op, a, b, funct3, funct7) {
-    a = a | 0;
-    b = b | 0;
-    switch (funct3) {
-        case 0b000: return funct7 === 0b0100000 ? a - b : a + b;
-        case 0b001: return a << (b & 0x1F);
-        case 0b010: return a < b ? 1 : 0;
-        case 0b011: return (a >>> 0) < (b >>> 0) ? 1 : 0;
-        case 0b100: return a ^ b;
-        case 0b101: return funct7 === 0b0100000 ? a >> (b & 0x1F) : a >>> (b & 0x1F);
-        case 0b110: return a | b;
-        case 0b111: return a & b;
-        default: return 0;
-    }
-}
-
-function executeInstruction() {
-    if (processor.pc >= processor.instructions.length) {
-        addToLog('⚠ Fin del programa');
-        processor.isRunning = false;
-        updateUI();
-        return;
-    }
-    const instrText = processor.instructions[processor.pc];
-    const { opcode: mnemonic, regs } = parseInstruction(instrText);
-    const opcodeValue = getOpcodeValue(mnemonic);
-    const funct3 = getFunct3(mnemonic);
-    const funct7 = getFunct7(mnemonic);
-    let aluResult = 0;
-    let logMessage = '';
-    let newPC = processor.pc + 1;
-    const isRType = opcodeValue === 0b0110011;
-    const isIType = opcodeValue === 0b0010011;
-    const isLoad = opcodeValue === 0b0000011;
-    const isStore = opcodeValue === 0b0100011;
-    const isBranch = opcodeValue === 0b1100011;
-    if (isRType) {
-        const [rd, rs1, rs2] = regs;
-        const val1 = processor.registers[rs1];
-        const val2 = processor.registers[rs2];
-        aluResult = executeALU(mnemonic, val1, val2, funct3, funct7);
-        if (rd !== 0) processor.registers[rd] = aluResult;
-        logMessage = `${mnemonic.toUpperCase()} x${rd}, x${rs1}, x${rs2} → x${rd} = ${aluResult}`;
-        processor.controlSignals = {
-            RegWrite: true, ALUSrc: false, MemWrite: false,
-            MemRead: false, MemToReg: false, Branch: false, ALUOp: '10'
-        };
-        processor.internals.readData1 = val1;
-        processor.internals.readData2 = val2;
-        processor.internals.aluResult = aluResult;
-    } else if (isIType) {
-        const [rd, rs1, imm] = regs;
-        const val1 = processor.registers[rs1];
-        aluResult = executeALU(mnemonic, val1, imm, funct3, funct7);
-        if (rd !== 0) processor.registers[rd] = aluResult;
-        logMessage = `${mnemonic.toUpperCase()} x${rd}, x${rs1}, ${imm} → x${rd} = ${aluResult}`;
-        processor.controlSignals = {
-            RegWrite: true, ALUSrc: true, MemWrite: false,
-            MemRead: false, MemToReg: false, Branch: false, ALUOp: '10'
-        };
-        processor.internals.readData1 = val1;
-        processor.internals.readData2 = imm;
-        processor.internals.imm = imm;
-        processor.internals.aluResult = aluResult;
-    } else if (isLoad) {
-        const [rd, rs1, offset = 0] = regs;
-        const addr = processor.registers[rs1] + offset;
-        const memIndex = Math.floor(addr / 4) % 256;
-        const memValue = processor.memory[memIndex];
-        if (rd !== 0) processor.registers[rd] = memValue;
-        logMessage = `${mnemonic.toUpperCase()} x${rd}, ${offset}(x${rs1}) → x${rd} = MEM[${addr}] = ${memValue}`;
-        processor.controlSignals = {
-            RegWrite: true, ALUSrc: true, MemWrite: false,
-            MemRead: true, MemToReg: true, Branch: false, ALUOp: '00'
-        };
-        processor.internals.readData1 = processor.registers[rs1];
-        processor.internals.imm = offset;
-        processor.internals.aluResult = addr;
-        processor.internals.memData = memValue;
-    } else if (isStore) {
-        const [rs2, rs1, offset = 0] = regs;
-        const addr = processor.registers[rs1] + offset;
-        const memIndex = Math.floor(addr / 4) % 256;
-        processor.memory[memIndex] = processor.registers[rs2];
-        logMessage = `${mnemonic.toUpperCase()} x${rs2}, ${offset}(x${rs1}) → MEM[${addr}] = ${processor.registers[rs2]}`;
-        processor.controlSignals = {
-            RegWrite: false, ALUSrc: true, MemWrite: true,
-            MemRead: false, MemToReg: false, Branch: false, ALUOp: '00'
-        };
-        processor.internals.readData1 = processor.registers[rs1];
-        processor.internals.readData2 = processor.registers[rs2];
-        processor.internals.imm = offset;
-        processor.internals.aluResult = addr;
-    } else if (isBranch) {
-        const [rs1, rs2, offset = 1] = regs;
-        const val1 = processor.registers[rs1];
-        const val2 = processor.registers[rs2];
-        let takeBranch = false;
-        switch (funct3) {
-            case 0b000: takeBranch = val1 === val2; break;
-            case 0b001: takeBranch = val1 !== val2; break;
-            case 0b100: takeBranch = val1 < val2; break;
-            case 0b101: takeBranch = val1 >= val2; break;
-            case 0b110: takeBranch = (val1 >>> 0) < (val2 >>> 0); break;
-            case 0b111: takeBranch = (val1 >>> 0) >= (val2 >>> 0); break;
-        }
-        if (takeBranch) {
-            newPC = processor.pc + offset;
-            logMessage = `${mnemonic.toUpperCase()} x${rs1}, x${rs2}, ${offset} → SALTO TOMADO (PC = ${newPC})`;
-        } else {
-            logMessage = `${mnemonic.toUpperCase()} x${rs1}, x${rs2}, ${offset} → SALTO NO TOMADO`;
-        }
-        processor.controlSignals = {
-            RegWrite: false, ALUSrc: false, MemWrite: false,
-            MemRead: false, MemToReg: false, Branch: true, ALUOp: '01'
-        };
-        processor.internals.readData1 = val1;
-        processor.internals.readData2 = val2;
-        processor.internals.imm = offset;
-    }
-    processor.pc = newPC;
-    addToLog(`[${processor.pc - 1}] ${logMessage}`);
-    updateUI();
-}
-
-function stepExecution() {
-    if (processor.pc < processor.instructions.length) executeInstruction();
-}
-
-function runProgram() {
-processor.isRunning = true;
-const runInterval = setInterval(() => {
-if (processor.pc < processor.instructions.length && processor.isRunning) {
-executeInstruction();
-} else {
-processor.isRunning = false;
-clearInterval(runInterval);
-updateUI();
-}
-}, 500);
-}
-function resetProcessor() {
-processor.registers = Array(32).fill(0);
-processor.memory = Array(256).fill(0);
-processor.pc = 0;
-processor.executionLog = [];
-processor.isRunning = false;
-processor.controlSignals = {
-RegWrite: false, ALUSrc: false, MemWrite: false,
-MemRead: false, MemToReg: false, Branch: false, ALUOp: '00'
-};
-processor.internals = {
-instruction: '', opcode: 0, rd: 0, rs1: 0, rs2: 0,
-funct3: 0, funct7: 0, imm: 0, aluResult: 0,
-readData1: 0, readData2: 0, memData: 0
-};
-updateUI();
-}
-function addInstruction(instruction) {
-if (instruction.trim()) {
-processor.instructions.push(instruction.trim());
-updateInstructionList();
-}
-}
-function addMultipleInstructions(instructionsText) {
-if (!instructionsText.trim()) return;
-const lines = instructionsText.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
-
-lines.forEach(line => {
-    if (line) {
-        processor.instructions.push(line);
-    }
-});
-
-updateInstructionList();
-addToLog(`✓ Se agregaron ${lines.length} instrucciones`);
-}
-function clearAllInstructions() {
-processor.instructions = [];
-processor.pc = 0;
-updateInstructionList();
-updateUI();
-addToLog('🗑️ Todas las instrucciones fueron eliminadas');
-}
-function deleteInstruction(index) {
-processor.instructions.splice(index, 1);
-if (processor.pc >= processor.instructions.length) processor.pc = 0;
-updateInstructionList();
-updateUI();
-}
-function addToLog(message) {
-processor.executionLog.push(message);
-updateExecutionLog();
-}
-function updateRegisterValue(index, value) {
-if (index === 0) return;
-const numValue = parseInt(value) || 0;
-processor.registers[index] = numValue;
-updateUI();
-}
-function updateMemoryValue(index, value) {
-const numValue = parseInt(value) || 0;
-processor.memory[index] = numValue;
-updateUI();
-}
-function updateUI() {
-updateRegisterBank();
-updateMemoryBank();
-updateControlSignals();
-updateALU();
-updatePCInfo();
-updateInstructionList();
-}
-function updateInstructionList() {
-const listContainer = document.getElementById('instructionList');
-listContainer.innerHTML = '';
-processor.instructions.forEach((instr, index) => {
-const item = document.createElement('div');
-item.className = 'instruction-item' + (index === processor.pc ? ' active' : '');
-item.innerHTML = `<span class='instruction-index'>${index}:</span>
-                <span class='instruction-text'>${instr}</span>
-                <button class='delete-btn' onclick='deleteInstruction(${index})'>🗑️</button>`;
-                listContainer.appendChild(item);
-});
-}
-function updateRegisterBank() {
-const container = document.getElementById('registerBank');
-container.innerHTML = '';
-processor.registers.forEach((value, index) => {
-const regDiv = document.createElement('div');
-let className = 'register ';
-if (index === 0) className += 'zero';
-else if (value !== 0) className += 'active';
-else className += 'inactive';
-regDiv.className = className;
-if (index === 0) {
-        regDiv.innerHTML = `
-            <div class="register-name">x${index}</div>
-            <div class="register-value">${value}</div>
-        `;
-    } else {
-        regDiv.innerHTML = `
-            <div class="register-name">x${index}</div>
-            <input type="number" class="register-value-input" value="${value}" 
-            onchange="updateRegisterValue(${index}, this.value)" 
-            onclick="this.select()">
-        `;
-    }
-    container.appendChild(regDiv);
-});
-}
-function updateMemoryBank() {
-const container = document.getElementById('memoryBank');
-container.innerHTML = '';
-for (let i = 0; i < 32; i++) {
-const value = processor.memory[i];
-const memDiv = document.createElement('div');
-memDiv.className = 'memory-cell ' + (value !== 0 ? 'active' : 'inactive');
-memDiv.innerHTML = `<div class="memory-address">[${i * 4}]</div><input type="number" class="memory-value-input" value="${value}" onchange="updateMemoryValue(${i}, this.value)" onclick="this.select()">`;
-container.appendChild(memDiv);
-}
-}
-
-function updateControlSignals() {
-const container = document.getElementById('controlSignals');
-container.innerHTML = '';
-Object.entries(processor.controlSignals).forEach(([signal, value]) => {
-const signalDiv = document.createElement('div');
-signalDiv.className = 'control-signal ' + (value ? 'active' : 'inactive');
-signalDiv.innerHTML = '<div class="signal-name">${signal}</div><div class="signal-value">${value.toString()}</div>';
-container.appendChild(signalDiv);
-});
-}
-function updateALU() {
-document.getElementById('aluOperandA').textContent = processor.internals.readData1;
-document.getElementById('aluOperandB').textContent = processor.internals.readData2 || processor.internals.imm;
-document.getElementById('aluResult').textContent = processor.internals.aluResult;
-}
-function updatePCInfo() {
-document.getElementById('pcValue').textContent = processor.pc;
-document.getElementById('currentInstruction').textContent =
-processor.pc < processor.instructions.length ? processor.instructions[processor.pc] : 'N/A';
-}
-function updateExecutionLog() {
-const logContainer = document.getElementById('executionLog');
-if (processor.executionLog.length === 0) {
-logContainer.innerHTML = '<div class="log-empty">No hay ejecuciones todavía...</div>';
-} else {
-logContainer.innerHTML = processor.executionLog.map(entry => `<div class="log-entry">${entry}</div>`).join('');
-logContainer.scrollTop = logContainer.scrollHeight;
-}
-}
-document.addEventListener('DOMContentLoaded', () => {
-document.getElementById('stepBtn').addEventListener('click', stepExecution);
-document.getElementById('runBtn').addEventListener('click', runProgram);
-document.getElementById('resetBtn').addEventListener('click', resetProcessor);
-document.getElementById('addInstructionBtn').addEventListener('click', () => {
-    const input = document.getElementById('newInstructionInput');
-    addInstruction(input.value);
-    input.value = '';
-});
-
-document.getElementById('newInstructionInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const input = document.getElementById('newInstructionInput');
-        addInstruction(input.value);
-        input.value = '';
-    }
-});
-
-document.getElementById('loadMultipleBtn').addEventListener('click', () => {
-    const modal = document.getElementById('multipleInstructionsModal');
-    modal.style.display = 'flex';
-});
-
-document.getElementById('closeModalBtn').addEventListener('click', () => {
-    const modal = document.getElementById('multipleInstructionsModal');
-    modal.style.display = 'none';
-});
-
-document.getElementById('addMultipleBtn').addEventListener('click', () => {
-    const textarea = document.getElementById('multipleInstructionsText');
-    addMultipleInstructions(textarea.value);
-    textarea.value = '';
-    document.getElementById('multipleInstructionsModal').style.display = 'none';
-});
-
-document.getElementById('clearAllBtn').addEventListener('click', () => {
-    if (confirm('¿Estás seguro de que quieres eliminar todas las instrucciones?')) {
-        clearAllInstructions();
-    }
-});
-
-updateUI();
-});
 // ============================================
 // SISTEMA DE ANIMACIÓN DEL DIAGRAMA
 // ============================================
@@ -1130,7 +718,8 @@ step: 3,
 description: `📖 Banco lee dato1=${state.registers[rs1]} (x${rs1}) y dato2=${state.registers[rs2]} (x${rs2})`,
 components: ['regFile', 'muxA'],
 buses: [
-{ from: 'regFile', to: 'alu', color: '#95E1D3', label: `d1=${state.registers[rs1]}` }
+{ from: 'regFile', to: 'alu', color: '#95E1D3', label: `d1=${state.registers[rs1]}` },
+{ from: 'regFile', to: 'muxA', color: '#F38181', label: `d2=${state.registers[rs2]}` }
 ],
 delay: 1500
 },
@@ -1185,7 +774,7 @@ components: ['instMem', 'controlUnit', 'muxE', 'signExtend'],
 buses: [
 { from: 'instMem', to: 'controlUnit', color: '#FF6B6B', label: 'opcode' },
 { from: 'instMem', to: 'muxE', color: '#FFD93D', label: 'rs2/rd' },
-{ from: 'muxE', to: 'signExtend', color: '#6BCB77', label: 'concat fun7' }
+{ from: 'instMem', to: 'signExtend', color: '#6BCB77', label: 'concat fun7' }
 ],
 delay: 1500
 },
@@ -1541,6 +1130,7 @@ document.body.appendChild(box);
 // ============================================
 function animateDataFlow(buses) {
 const pathMap = {
+
 'pc|instMem': [[85,155], [200,155]],
 'instMem|controlUnit': [[300,340], [300,380]],
 'instMem|regFile': [[400,240], [550,240], [550,320]],
@@ -1553,7 +1143,7 @@ const pathMap = {
 'regFile|dataMem': [[750,440], [1050,440], [1050,430], [1100,430]],
 'muxA|alu': [[860,380], [890,380], [890,410], [920,410]],
 'alu|dataMem': [[1020,360], [1070,360], [1070,350], [1100,350]],
-'alu|muxB': [[1020,380], [1320,380], [1320,365], [1360,365]],
+'alu|muxB': [[1020,380], [1060,380], [1060,200], [1320,200], [1320,365], [1360,365]],
 'alu|muxC': [[970,450], [970,550], [90,550], [90,590]],
 'dataMem|muxB': [[1300,390], [1330,390], [1330,395], [1360,395]],
 'muxB|regFile': [[1400,380], [1480,380], [1480,50], [700,50], [700,280]],
@@ -1562,7 +1152,8 @@ const pathMap = {
 'ordenExtend|muxD': [[340,615], [340,750], [30,750], [30,400], [50,400]],
 'sumador|muxD': [[80,310], [80,360], [70,360]],
 'muxD|pc': [[70,430], [70,800], [20,800], [20,155], [50,155]],
-'andGate|muxD': [[210,705], [250,705], [250,480], [80,480], [80,435]]
+'andGate|muxD': [[210,705], [250,705], [250,480], [80,480], [80,435]],
+'instMem|signExtend':[[400,115],[515,115],[515,160]]
 };
 function resolveName(name) {
     const map = { 
@@ -1680,26 +1271,7 @@ if (animationState.isAnimating) {
 drawConnections();
 ctx.globalAlpha = 1.0;
 
-animationState.activeBuses.forEach(bus => {
-    const fromComp = components[bus.from];
-    const toComp = components[bus.to];
-    if (!fromComp || !toComp) return;
-    
-    const fromX = fromComp.x + fromComp.width / 2;
-    const fromY = fromComp.y + fromComp.height / 2;
-    const toX = toComp.x + toComp.width / 2;
-    const toY = toComp.y + toComp.height / 2;
-    
-    ctx.strokeStyle = bus.color;
-    ctx.lineWidth = 5;
-    ctx.shadowColor = bus.color;
-    ctx.shadowBlur = 15;
-    ctx.beginPath();
-    ctx.moveTo(fromX, fromY);
-    ctx.lineTo(toX, toY);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-});
+
 
 animationState.dataFlowing.forEach(particle => {
     const path = particle.path;
@@ -1793,625 +1365,3 @@ if (document.getElementById('viewDiagram')?.classList.contains('active')) {
     }
 }
 };
-// ============================================
-// PANEL DE CONTROL FLOTANTE PARA EL DIAGRAMA
-// ============================================
-function createDiagramControlPanel() {
-if (document.getElementById('diagramControlPanel')) return;
-const panel = document.createElement('div');
-panel.id = 'diagramControlPanel';
-panel.className = 'diagram-control-panel';
-panel.innerHTML = `
-    <div class="panel-header">
-        <h3>⚙️ Control del Simulador</h3>
-        <button id="togglePanel" class="btn-toggle">−</button>
-    </div>
-    
-    <div class="panel-content">
-        <div class="panel-section">
-            <div class="pc-display">
-                <span class="pc-label">PC:</span>
-                <span id="diagramPC" class="pc-value">0</span>
-                <span class="pc-total">/ <span id="diagramTotal">0</span></span>
-            </div>
-            <div class="instruction-display">
-                <strong>Instrucción Actual:</strong>
-                <div id="diagramCurrentInstr" class="current-instr">N/A</div>
-            </div>
-        </div>
-        
-        <div class="panel-section">
-            <h4>🎮 Ejecución</h4>
-            <div class="control-buttons-diagram">
-                <button id="diagramStepBtn" class="btn-control btn-step" title="Ejecutar siguiente instrucción">
-                    ▶️ Paso
-                </button>
-                <button id="diagramRunBtn" class="btn-control btn-run" title="Ejecutar todas las instrucciones">
-                    ⏩ Ejecutar Todo
-                </button>
-                <button id="diagramPauseBtn" class="btn-control btn-pause" style="display:none;" title="Pausar ejecución">
-                    ⏸️ Pausar
-                </button>
-                <button id="diagramResetBtn" class="btn-control btn-reset" title="Reiniciar procesador">
-                    🔄 Reiniciar
-                </button>
-            </div>
-        </div>
-        
-        <div class="panel-section">
-            <h4>⚡ Velocidad de Animación</h4>
-            <div class="speed-control-container">
-                <input type="range" id="diagramSpeedSlider" min="500" max="5000" value="2000" step="100">
-                <div class="speed-labels">
-                    <span>Rápido</span>
-                    <span id="diagramSpeedValue">2000ms</span>
-                    <span>Lento</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="panel-section">
-            <h4>📊 Registros (Quick View)</h4>
-            <div id="diagramQuickRegs" class="quick-registers"></div>
-        </div>
-        
-        
-        
-        <div class="panel-section">
-            <button id="backToSimulator" class="btn-control btn-back">
-                ← Volver al Simulador
-            </button>
-        </div>
-
-        <div class="panel-section collapsible">
-            <h4 onclick="toggleSection('controlSignalsSection')">
-                🎛️ Señales de Control
-                <span class="toggle-icon">▼</span>
-            </h4>
-            <div id="controlSignalsSection" class="collapsible-content">
-                <div id="diagramControlSignals" class="control-signals-mini"></div>
-            </div>
-        </div>
-    </div>
-`;
-
-document.body.appendChild(panel);
-setupDiagramControlListeners();
-updateDiagramControlPanel();
-updatePanelVisibility();
-}
-function setupDiagramControlListeners() {
-document.getElementById('togglePanel')?.addEventListener('click', () => {
-const panel = document.getElementById('diagramControlPanel');
-const content = panel.querySelector('.panel-content');
-const btn = document.getElementById('togglePanel');
-if (content.style.display === 'none') {
-        content.style.display = 'block';
-        btn.textContent = '−';
-        panel.classList.remove('collapsed');
-    } else {
-        content.style.display = 'none';
-        btn.textContent = '+';
-        panel.classList.add('collapsed');
-    }
-});
-
-document.getElementById('diagramStepBtn')?.addEventListener('click', async () => {
-    if (processor.pc < processor.instructions.length) {
-        await executeInstruction();
-        updateDiagramControlPanel();
-    } else {
-        showNotification('⚠️ No hay más instrucciones', 'warning');
-    }
-});
-
-let runLoopActive = false;
-document.getElementById('diagramRunBtn')?.addEventListener('click', async () => {
-    if (processor.isRunning) {
-        processor.isRunning = false;
-        runLoopActive = false;
-        document.getElementById('diagramRunBtn').style.display = 'inline-block';
-        document.getElementById('diagramPauseBtn').style.display = 'none';
-        showNotification('⏸️ Ejecución pausada', 'info');
-        return;
-    }
-    
-    processor.isRunning = true;
-    runLoopActive = true;
-    document.getElementById('diagramRunBtn').style.display = 'none';
-    document.getElementById('diagramPauseBtn').style.display = 'inline-block';
-    
-    const speed = parseInt(document.getElementById('diagramSpeedSlider').value) || 800;
-    
-    while (processor.pc < processor.instructions.length && processor.isRunning && runLoopActive) {
-        await executeInstruction();
-        updateDiagramControlPanel();
-        await new Promise(res => setTimeout(res, speed));
-    }
-    
-    processor.isRunning = false;
-    runLoopActive = false;
-    document.getElementById('diagramRunBtn').style.display = 'inline-block';
-    document.getElementById('diagramPauseBtn').style.display = 'none';
-    if (processor.pc >= processor.instructions.length) {
-        showNotification('✅ Programa completado', 'success');
-    }
-});
-
-document.getElementById('diagramPauseBtn')?.addEventListener('click', () => {
-    processor.isRunning = false;
-    document.getElementById('diagramRunBtn').style.display = 'inline-block';
-    document.getElementById('diagramPauseBtn').style.display = 'none';
-    showNotification('⏸️ Ejecución pausada', 'info');
-});
-
-document.getElementById('diagramResetBtn')?.addEventListener('click', () => {
-    if (confirm('¿Reiniciar el procesador?')) {
-        resetProcessor();
-        updateDiagramControlPanel();
-        showNotification('🔄 Procesador reiniciado', 'info');
-    }
-});
-
-document.getElementById('diagramSpeedSlider')?.addEventListener('input', (e) => {
-    const value = parseInt(e.target.value);
-    animationConfig.duration = value;
-    document.getElementById('diagramSpeedValue').textContent = value + 'ms';
-});
-
-document.getElementById('backToSimulator')?.addEventListener('click', () => {
-    showView('simulator');
-});
-}
-function updateDiagramControlPanel() {
-document.getElementById('diagramPC').textContent = processor.pc;
-document.getElementById('diagramTotal').textContent = processor.instructions.length;
-const instrDisplay = document.getElementById('diagramCurrentInstr');
-if (processor.pc < processor.instructions.length) {
-    instrDisplay.textContent = processor.instructions[processor.pc];
-    instrDisplay.style.color = '#2d3748';
-} else {
-    instrDisplay.textContent = 'Programa finalizado';
-    instrDisplay.style.color = '#718096';
-}
-
-updateQuickRegisters();
-updateQuickControlSignals();
-}
-function updateQuickRegisters() {
-const container = document.getElementById('diagramQuickRegs');
-if (!container) return;
-const nonZeroRegs = processor.registers
-    .map((val, idx) => ({ idx, val }))
-    .filter(r => r.val !== 0 && r.idx !== 0)
-    .slice(0, 8);
-
-if (nonZeroRegs.length === 0) {
-    container.innerHTML = '<div class="no-data">Todos los registros en 0</div>';
-    return;
-}
-
-container.innerHTML = nonZeroRegs.map(r => `
-    <div class="quick-reg">
-        <span class="reg-name">x${r.idx}</span>
-        <span class="reg-value">${r.val}</span>
-    </div>
-`).join('');
-}
-function updateQuickControlSignals() {
-const container = document.getElementById('diagramControlSignals');
-if (!container) return;
-container.innerHTML = Object.entries(processor.controlSignals)
-    .map(([signal, value]) => `
-        <div class="signal-indicator ${value ? 'active' : 'inactive'}">
-            <span class="signal-name">${signal}</span>
-            <span class="signal-dot"></span>
-        </div>
-    `).join('');
-    }
-function updatePanelVisibility() {
-const panel = document.getElementById('diagramControlPanel');
-if (!panel) return;
-const isDiagramView = document.getElementById('viewDiagram')?.classList.contains('active');
-panel.style.display = isDiagramView ? 'block' : 'none';
-}
-const originalShowView2 = showView;
-showView = function(viewName) {
-originalShowView2(viewName);
-updatePanelVisibility();
-if (viewName === 'diagram') {
-updateDiagramControlPanel();
-}
-};
-function toggleSection(sectionId) {
-const section = document.getElementById(sectionId);
-if (!section) return;
-const isHidden = section.style.display === 'none';
-section.style.display = isHidden ? 'block' : 'none';
-
-const icon = section.previousElementSibling?.querySelector('.toggle-icon');
-if (icon) {
-    icon.textContent = isHidden ? '▼' : '▶';
-}
-}
-function showNotification(message, type = 'info') {
-const notification = document.createElement('div');
-notification.className = 'notification notification-${type}';
-notification.textContent = message;
-notification.style.cssText = `position: fixed; 
-top: 20px;
-right: 20px;
-padding: 15px 25px;
-border-radius: 8px;
-font-weight: 600;
-font-size: 14px;
-box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-z-index: 20000;
-animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.5s forwards;`;
-
-const colors = {
-    info: 'linear-gradient(135deg, #4299e1 0%, #3182ce 100%)',
-    success: 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)',
-    warning: 'linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)',
-    error: 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)'
-};
-
-notification.style.background = colors[type] || colors.info;
-notification.style.color = 'white';
-
-document.body.appendChild(notification);
-
-setTimeout(() => {
-    notification.remove();
-}, 3000);
-}
-const panelStyles = document.createElement('style');
-panelStyles.textContent = `
-.diagram-control-panel {
-position: fixed;
-right: 20px;
-top: 100px;
-width: 320px;
-background: white;
-border-radius: 12px;
-box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-z-index: 1000;
-overflow: hidden;
-transition: all 0.3s ease;
-}
-.diagram-control-panel.collapsed {
-    width: 200px;
-}
-
-.panel-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.panel-header h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.btn-toggle {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.btn-toggle:hover {
-    background: rgba(255,255,255,0.3);
-}
-
-.panel-content {
-    padding: 15px;
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-}
-
-.panel-section {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.panel-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.panel-section h4 {
-    margin: 0 0 12px 0;
-    font-size: 14px;
-    color: #4c51bf;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.panel-section.collapsible h4 {
-    cursor: pointer;
-    user-select: none;
-    justify-content: space-between;
-}
-
-.toggle-icon {
-    font-size: 12px;
-    transition: transform 0.3s;
-}
-
-.pc-display {
-    background: #f7fafc;
-    padding: 12px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.pc-label {
-    font-weight: 600;
-    color: #4a5568;
-}
-
-.pc-value {
-    font-size: 24px;
-    font-weight: bold;
-    color: #4c51bf;
-    font-family: 'Courier New', monospace;
-}
-
-.pc-total {
-    color: #718096;
-    font-size: 14px;
-}
-
-.instruction-display {
-    background: #ebf4ff;
-    padding: 10px;
-    border-radius: 6px;
-}
-
-.instruction-display strong {
-    display: block;
-    font-size: 11px;
-    color: #4a5568;
-    margin-bottom: 5px;
-}
-
-.current-instr {
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    color: #2d3748;
-    font-weight: 600;
-}
-
-.control-buttons-diagram {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.btn-control {
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: white;
-}
-
-.btn-step {
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-}
-
-.btn-step:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
-}
-
-.btn-run {
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-}
-
-.btn-run:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
-}
-
-.btn-pause {
-    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-    grid-column: 1 / -1;
-}
-
-.btn-pause:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(237, 137, 54, 0.4);
-}
-
-.btn-reset {
-    background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-    grid-column: 1 / -1;
-}
-
-.btn-reset:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
-}
-
-.btn-back {
-    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
-    grid-column: 1 / -1;
-}
-
-.btn-back:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(113, 128, 150, 0.4);
-}
-
-.speed-control-container input[type="range"] {
-    width: 100%;
-    margin: 10px 0;
-}
-
-.speed-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #718096;
-}
-
-.speed-labels span:nth-child(2) {
-    color: #4c51bf;
-    font-weight: bold;
-}
-
-.quick-registers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-}
-
-.quick-reg {
-    background: #f7fafc;
-    padding: 8px;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-}
-
-.quick-reg .reg-name {
-    font-weight: 600;
-    color: #4a5568;
-}
-
-.quick-reg .reg-value {
-    font-family: 'Courier New', monospace;
-    color: #2d3748;
-    font-weight: bold;
-}
-
-.no-data {
-    text-align: center;
-    color: #718096;
-    font-size: 12px;
-    padding: 10px;
-    font-style: italic;
-}
-
-.control-signals-mini {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-}
-
-.signal-indicator {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-}
-
-.signal-indicator.active {
-    background: #c6f6d5;
-    color: #22543d;
-}
-
-.signal-indicator.inactive {
-    background: #f7fafc;
-    color: #718096;
-}
-
-.signal-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-.collapsible-content {
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes fadeOut {
-    to {
-        opacity: 0;
-        transform: translateX(50px);
-    }
-}
-
-@media (max-width: 768px) {
-    .diagram-control-panel {
-        width: calc(100% - 40px);
-        right: 20px;
-        left: 20px;
-    }
-}
-
-.panel-content::-webkit-scrollbar {
-    width: 6px;
-}
-
-.panel-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-.panel-content::-webkit-scrollbar-thumb {
-    background: #cbd5e0;
-    border-radius: 10px;
-}
-
-.panel-content::-webkit-scrollbar-thumb:hover {
-    background: #a0aec0;
-}`;
-document.head.appendChild(panelStyles);
-document.addEventListener('DOMContentLoaded', () => {
-setTimeout(() => {
-createDiagramControlPanel();
-}, 200);
-});
-const originalShowView3 = showView;
-showView = function(viewName) {
-originalShowView3(viewName);
-if (viewName === 'diagram' && !document.getElementById('diagramControlPanel')) {
-createDiagramControlPanel();
-}
-};
-const animStyle = document.createElement('style');
-animStyle.textContent = `@keyframes slideDown {from{transform: translate(-50%, -20px);opacity: 0;}to{transform: translate(-50%, 0);opacity: 1;}}`;
-document.head.appendChild(animStyle);
-

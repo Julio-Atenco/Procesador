@@ -833,3 +833,52 @@ canvas {
     background: #f0f0f0;
     transform: translateX(5px);
 }
+
+footer {
+    background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
+    color: white;
+    text-align: center;
+    padding: 30px 20px;
+    margin-top: 40px;
+    border-radius: 12px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}
+
+footer p {
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.footer-contacts {
+    margin-top: 10px;
+}
+
+.footer-contacts p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.8;
+}
+
+.footer-contacts strong {
+    color: #ffd700;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+
+footer a {
+    color: #ffd700;
+    text-decoration: none;
+    margin: 0 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+footer a:hover {
+    color: #fff;
+    border-bottom: 2px solid #ffd700;
+    transform: translateY(-2px);
+}
